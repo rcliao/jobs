@@ -28,29 +28,24 @@ export async function executeSearch(): Promise<SearchResult> {
     throw new Error('Profile or agent config not found. Please configure your settings first.')
   }
 
-  // Create search run record
   const searchRunId = randomUUID()
-  const searchRun = createSearchRun({
-    id: searchRunId,
-    executedAt: new Date(),
-    queries: [],
-    resultsCount: 0,
-    status: 'running',
-    errorMessage: null
-  })
-
-  console.log(`Created search run: ${searchRunId}`)
 
   try {
     // Step 1: Generate search queries with Gemini AI
     console.log('Step 1: Generating search queries...')
     const queries = await generateSearchQueries(profile, agentConfig)
 
-    // Update search run with queries
-    updateSearchRun(searchRunId, {
-      ...searchRun,
-      queries
+    // Create search run record with the generated queries
+    const searchRun = createSearchRun({
+      id: searchRunId,
+      executedAt: new Date(),
+      queries,
+      resultsCount: 0,
+      status: 'running',
+      errorMessage: null
     })
+
+    console.log(`Created search run: ${searchRunId}`)
 
     // Step 2: Execute Google Custom Search
     console.log('Step 2: Executing Google Custom Search...')
