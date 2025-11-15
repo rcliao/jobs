@@ -2,23 +2,15 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { listJobs } from '@/lib/db/queries'
 import { JobCard } from '@/components/job-card'
+import { executeSearch } from '@/lib/agent/researcher'
 
 // Server Action to trigger search
 async function runSearch() {
   'use server'
 
   try {
-    // Use relative URL or determine base URL dynamically
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    })
-
-    if (!response.ok) {
-      revalidatePath('/')
-      redirect('/?search=error')
-    }
+    // Call search execution directly (no HTTP request needed)
+    await executeSearch()
 
     revalidatePath('/')
     redirect('/?search=complete')

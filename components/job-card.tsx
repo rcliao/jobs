@@ -1,18 +1,14 @@
 import type { Job } from '@/types'
 import { revalidatePath } from 'next/cache'
+import { updateJob } from '@/lib/db/queries'
 
 // Server Actions for updating job status
 async function updateJobStatus(jobId: string, status: Job['status']) {
   'use server'
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    await fetch(`${baseUrl}/api/jobs/${jobId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    })
-
+    // Call database function directly (no HTTP request needed)
+    updateJob(jobId, { status })
     revalidatePath('/')
   } catch (error) {
     console.error('Error updating job status:', error)
