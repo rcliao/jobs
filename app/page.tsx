@@ -59,6 +59,12 @@ export default async function Dashboard({
             >
               ⚙️ Configuration
             </a>
+            <a
+              href="/about"
+              className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 font-medium"
+            >
+              ℹ️ About
+            </a>
           </div>
         </div>
 
