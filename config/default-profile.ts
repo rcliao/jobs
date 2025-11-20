@@ -21,5 +21,7 @@ export const defaultProfile: UpdateProfileRequest = {
     target: 220000
   },
   avoid: ['blockchain', 'crypto', 'web3', 'consultancy', 'agency'],
-  mustHave: ['remote-friendly', 'equity', 'strong engineering culture']
+  mustHave: ['remote-friendly', 'equity', 'strong engineering culture'],
+  includedSites: ['greenhouse.io', 'lever.co', 'ashbyhq.com', 'workable.com', 'bamboohr.com'],
+  excludedSites: []
 }

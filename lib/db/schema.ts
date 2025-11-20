@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   compensation TEXT NOT NULL,
   avoid TEXT NOT NULL,
   must_have TEXT NOT NULL,
+  included_sites TEXT NOT NULL,
+  excluded_sites TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );

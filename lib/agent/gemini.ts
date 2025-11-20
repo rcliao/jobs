@@ -31,7 +31,16 @@ export async function generateSearchQueries(
   const profileJson = JSON.stringify(profile, null, 2)
   const systemPrompt = agentConfig.systemPrompt.replace('{{profile}}', profileJson)
 
+  const includedSitesStr = profile.includedSites.length > 0
+    ? `\nINCLUDED SITES (prioritize these): ${profile.includedSites.join(', ')}`
+    : ''
+
+  const excludedSitesStr = profile.excludedSites.length > 0
+    ? `\nEXCLUDED SITES (do not include): ${profile.excludedSites.join(', ')}`
+    : ''
+
   const prompt = `${systemPrompt}
+${includedSitesStr}${excludedSitesStr}
 
 TASK: Generate 5-7 Google Custom Search queries to find job postings for this candidate.
 

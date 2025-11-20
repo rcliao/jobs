@@ -27,7 +27,9 @@ async function updateProfileAction(formData: FormData) {
       target: parseInt(formData.get('targetComp') as string) || 0
     },
     avoid: formData.get('avoid')?.toString().split(',').map(s => s.trim()) || [],
-    mustHave: formData.get('mustHave')?.toString().split(',').map(s => s.trim()) || []
+    mustHave: formData.get('mustHave')?.toString().split(',').map(s => s.trim()) || [],
+    includedSites: formData.get('includedSites')?.toString().split(',').map(s => s.trim()) || [],
+    excludedSites: formData.get('excludedSites')?.toString().split(',').map(s => s.trim()) || []
   }
 
   updateProfile(profile)
@@ -284,6 +286,34 @@ export default async function ConfigPage({
                 name="avoid"
                 defaultValue={profile.avoid.join(', ')}
                 placeholder="blockchain, crypto, consultancy"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="includedSites" className="block text-sm font-medium text-gray-700 mb-1">
+                Included Sites (prioritize these)
+              </label>
+              <input
+                type="text"
+                id="includedSites"
+                name="includedSites"
+                defaultValue={profile.includedSites?.join(', ') || ''}
+                placeholder="greenhouse.io, lever.co"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="excludedSites" className="block text-sm font-medium text-gray-700 mb-1">
+                Excluded Sites (do not include)
+              </label>
+              <input
+                type="text"
+                id="excludedSites"
+                name="excludedSites"
+                defaultValue={profile.excludedSites?.join(', ') || ''}
+                placeholder="example.com, bad-site.com"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
             </div>

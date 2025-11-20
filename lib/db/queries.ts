@@ -27,8 +27,10 @@ function rowToProfile(row: ProfileRow): Profile {
     compensation: JSON.parse(row.compensation),
     avoid: JSON.parse(row.avoid),
     mustHave: JSON.parse(row.must_have),
-    createdAt: new Date(row.created_at * 1000),
-    updatedAt: new Date(row.updated_at * 1000)
+    includedSites: row.included_sites ? JSON.parse(row.included_sites) : [],
+    excludedSites: row.excluded_sites ? JSON.parse(row.excluded_sites) : [],
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at)
   }
 }
 
@@ -89,11 +91,15 @@ export function createProfile(data: UpdateProfileRequest, id: string = 'default'
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
-    INSERT INTO profiles (
+    INSERT OR REPLACE INTO profiles (
       id, target_role, seniority, technical_skills, company, location,
-      compensation, avoid, must_have, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      compensation, avoid, must_have, included_sites, excluded_sites, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
+
+  // If creating, we want to preserve the original createdAt if it exists (e.g., from an existing profile being replaced)
+  const currentProfile = getProfile(id)
+  const createdAt = currentProfile ? Math.floor(currentProfile.createdAt.getTime() / 1000) : now
 
   stmt.run(
     id,
@@ -105,7 +111,9 @@ export function createProfile(data: UpdateProfileRequest, id: string = 'default'
     JSON.stringify(data.compensation),
     JSON.stringify(data.avoid),
     JSON.stringify(data.mustHave),
-    now,
+    JSON.stringify(data.includedSites || []),
+    JSON.stringify(data.excludedSites || []),
+    createdAt,
     now
   )
 
@@ -125,6 +133,8 @@ export function updateProfile(data: UpdateProfileRequest, id: string = 'default'
       compensation = ?,
       avoid = ?,
       must_have = ?,
+      included_sites = ?,
+      excluded_sites = ?,
       updated_at = ?
     WHERE id = ?
   `)
@@ -138,6 +148,8 @@ export function updateProfile(data: UpdateProfileRequest, id: string = 'default'
     JSON.stringify(data.compensation),
     JSON.stringify(data.avoid),
     JSON.stringify(data.mustHave),
+    JSON.stringify(data.includedSites || []),
+    JSON.stringify(data.excludedSites || []),
     now,
     id
   )

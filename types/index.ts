@@ -24,6 +24,8 @@ export interface Profile {
   }
   avoid: string[]
   mustHave: string[]
+  includedSites: string[]
+  excludedSites: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -81,6 +83,8 @@ export interface ProfileRow {
   compensation: string // JSON
   avoid: string // JSON
   must_have: string // JSON
+  included_sites: string // JSON
+  excluded_sites: string // JSON
   created_at: number // Unix timestamp
   updated_at: number // Unix timestamp
 }
@@ -147,6 +151,8 @@ export interface UpdateProfileRequest {
   }
   avoid: string[]
   mustHave: string[]
+  includedSites: string[]
+  excludedSites: string[]
 }
 
 export interface UpdateAgentConfigRequest {
