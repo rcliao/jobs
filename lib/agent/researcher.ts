@@ -50,7 +50,7 @@ export async function executeSearch(): Promise<SearchResult> {
 
     // Step 2: Execute Google Custom Search
     console.log('Step 2: Executing Google Custom Search...')
-    const searchResults = await searchMultipleQueries(queries)
+    const searchResults = await searchMultipleQueries(queries, 'm1')
 
     if (searchResults.length === 0) {
       console.log('No results found')

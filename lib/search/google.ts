@@ -14,7 +14,7 @@ export interface GoogleSearchResponse {
   }
 }
 
-export async function searchGoogle(query: string): Promise<GoogleSearchResult[]> {
+export async function searchGoogle(query: string, dateRestrict: string = 'm1'): Promise<GoogleSearchResult[]> {
   const apiKey = process.env.GOOGLE_API_KEY
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID
 
@@ -27,6 +27,9 @@ export async function searchGoogle(query: string): Promise<GoogleSearchResult[]>
   url.searchParams.set('cx', searchEngineId)
   url.searchParams.set('q', query)
   url.searchParams.set('num', '10') // Get top 10 results per query
+  if (dateRestrict) {
+    url.searchParams.set('dateRestrict', dateRestrict)
+  }
 
   try {
     const response = await fetch(url.toString())
@@ -45,12 +48,12 @@ export async function searchGoogle(query: string): Promise<GoogleSearchResult[]>
   }
 }
 
-export async function searchMultipleQueries(queries: string[]): Promise<GoogleSearchResult[]> {
+export async function searchMultipleQueries(queries: string[], dateRestrict: string = 'm1'): Promise<GoogleSearchResult[]> {
   console.log(`Executing ${queries.length} Google Custom Search queries...`)
 
   // Execute all queries in parallel
   const results = await Promise.all(
-    queries.map(query => searchGoogle(query))
+    queries.map(query => searchGoogle(query, dateRestrict))
   )
 
   // Flatten results and deduplicate by URL
