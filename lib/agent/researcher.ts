@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import type { Profile, AgentConfig, SearchRun, Job } from '@/types'
 import { searchMultipleQueries } from '@/lib/search/google'
 import { generateSearchQueries, batchScoreJobs } from '@/lib/agent/gemini'
+import { containsAvoidKeywords } from '@/lib/utils/text-processing'
 import {
   createSearchRun,
   updateSearchRun,
@@ -63,7 +64,22 @@ export async function executeSearch(): Promise<SearchResult> {
 
     // Step 3: Score jobs with Gemini AI
     console.log('Step 3: Scoring jobs with AI...')
-    const jobsToScore = searchResults.map(result => ({
+
+    // Filter out jobs containing avoid keywords
+    const filteredResults = searchResults.filter(result => {
+      const textToCheck = `${result.title} ${result.snippet}`
+      const shouldAvoid = containsAvoidKeywords(textToCheck, profile.avoid)
+      if (shouldAvoid) {
+        console.log(`Skipping job with avoid keywords: ${result.title}`)
+      }
+      return !shouldAvoid
+    })
+
+    if (filteredResults.length < searchResults.length) {
+      console.log(`Filtered out ${searchResults.length - filteredResults.length} jobs based on avoid keywords`)
+    }
+
+    const jobsToScore = filteredResults.map(result => ({
       title: result.title,
       company: result.displayLink,
       description: result.snippet,
