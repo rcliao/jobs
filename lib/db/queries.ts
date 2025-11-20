@@ -226,7 +226,7 @@ export function listJobs(params: ListJobsParams = {}) {
   const { status, minScore, limit = 50, offset = 0 } = params
 
   let query = 'SELECT * FROM jobs WHERE 1=1'
-  const queryParams: any[] = []
+  const queryParams: (string | number)[] = []
 
   if (status) {
     query += ' AND status = ?'
@@ -246,7 +246,7 @@ export function listJobs(params: ListJobsParams = {}) {
 
   // Get total count
   let countQuery = 'SELECT COUNT(*) as total FROM jobs WHERE 1=1'
-  const countParams: any[] = []
+  const countParams: (string | number)[] = []
 
   if (status) {
     countQuery += ' AND status = ?'
@@ -273,7 +273,7 @@ export function updateJob(id: string, data: UpdateJobRequest): Job | null {
   const now = Math.floor(Date.now() / 1000)
 
   const updates: string[] = []
-  const params: any[] = []
+  const params: (string | number)[] = []
 
   if (data.status !== undefined) {
     updates.push('status = ?')
@@ -372,7 +372,7 @@ export function updateSearchRun(
   data: Partial<Pick<SearchRun, 'status' | 'resultsCount' | 'errorMessage'>>
 ): SearchRun | null {
   const updates: string[] = []
-  const params: any[] = []
+  const params: (string | number | null)[] = []
 
   if (data.status !== undefined) {
     updates.push('status = ?')

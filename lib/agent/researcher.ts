@@ -117,9 +117,10 @@ export async function executeSearch(): Promise<SearchResult> {
 
         createJob(job)
         savedCount++
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         // Skip duplicates (unique URL constraint)
-        if (error.message?.includes('UNIQUE constraint')) {
+        if (errorMessage.includes('UNIQUE constraint')) {
           console.log(`Skipping duplicate job: ${result.link}`)
         } else {
           console.error('Error saving job:', error)
@@ -140,13 +141,13 @@ export async function executeSearch(): Promise<SearchResult> {
       jobsFound: savedCount,
       queries
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Search execution failed:', error)
 
     // Update search run as failed
     updateSearchRun(searchRunId, {
       status: 'failed',
-      errorMessage: error.message || 'Unknown error'
+      errorMessage: error instanceof Error ? error.message : String(error)
     })
 
     throw error
