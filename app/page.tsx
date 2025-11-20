@@ -13,7 +13,8 @@ async function runSearch() {
     await executeSearch()
 
     revalidatePath('/')
-    redirect('/?search=complete')
+    revalidatePath('/')
+    redirect(`/?search=complete&t=${Date.now()}`)
   } catch (error: any) {
     // Don't catch NEXT_REDIRECT errors - they're expected
     if (error.message === 'NEXT_REDIRECT') {
@@ -112,51 +113,46 @@ export default async function Dashboard({
         <div className="flex gap-2 mb-6 flex-wrap">
           <a
             href="/"
-            className={`px-4 py-2 rounded-md font-medium ${
-              !params.status
+            className={`px-4 py-2 rounded-md font-medium ${!params.status
                 ? 'bg-gray-900 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             All Jobs
           </a>
           <a
             href="/?status=new"
-            className={`px-4 py-2 rounded-md font-medium ${
-              params.status === 'new'
+            className={`px-4 py-2 rounded-md font-medium ${params.status === 'new'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             New
           </a>
           <a
             href="/?status=saved"
-            className={`px-4 py-2 rounded-md font-medium ${
-              params.status === 'saved'
+            className={`px-4 py-2 rounded-md font-medium ${params.status === 'saved'
                 ? 'bg-yellow-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             Saved
           </a>
           <a
             href="/?status=applied"
-            className={`px-4 py-2 rounded-md font-medium ${
-              params.status === 'applied'
+            className={`px-4 py-2 rounded-md font-medium ${params.status === 'applied'
                 ? 'bg-green-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             Applied
           </a>
           <a
             href="/?status=dismissed"
-            className={`px-4 py-2 rounded-md font-medium ${
-              params.status === 'dismissed'
+            className={`px-4 py-2 rounded-md font-medium ${params.status === 'dismissed'
                 ? 'bg-gray-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             Dismissed
           </a>

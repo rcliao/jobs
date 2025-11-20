@@ -32,6 +32,7 @@ async function updateProfileAction(formData: FormData) {
 
   updateProfile(profile)
   revalidatePath('/config')
+  revalidatePath('/')
   redirect('/config?saved=profile')
 }
 
@@ -47,6 +48,7 @@ async function updateAgentConfigAction(formData: FormData) {
 
   updateAgentConfig(config)
   revalidatePath('/config')
+  revalidatePath('/')
   redirect('/config?saved=agent')
 }
 
