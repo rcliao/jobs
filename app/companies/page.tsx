@@ -88,12 +88,12 @@ export default async function CompaniesPage({
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Company Research</h1>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="text-blue-600 hover:text-blue-800 underline"
+              className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 font-medium"
             >
-              Back to Jobs
+              Home
             </Link>
             <Link
               href="/discovery"

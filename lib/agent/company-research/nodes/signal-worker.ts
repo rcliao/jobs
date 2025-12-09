@@ -30,6 +30,11 @@ const SIGNAL_QUERY_TEMPLATES: Record<SignalCategory, string[]> = {
     '"{company}" new CTO OR "VP Engineering" OR "Director Engineering"',
     '"{company}" executive hire leadership announcement',
     '"{company}" engineering team growth expansion'
+  ],
+  job_openings: [
+    '"{company}" hiring site:linkedin.com/jobs OR site:lever.co OR site:greenhouse.io',
+    '"{company}" careers open positions site:indeed.com OR site:glassdoor.com/job',
+    '"{company}" jobs engineer developer software'
   ]
 }
 
@@ -38,7 +43,8 @@ const DATE_RESTRICTIONS: Record<SignalCategory, string> = {
   growth_funding: 'y1',      // Last year
   culture_work_style: 'y2',  // Last 2 years
   tech_stack_engineering: 'y1',
-  leadership_changes: 'm6'   // Last 6 months
+  leadership_changes: 'm6',  // Last 6 months
+  job_openings: 'm1'         // Last month (job postings are time-sensitive)
 }
 
 /**

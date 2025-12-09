@@ -1,187 +1,284 @@
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { listJobs } from '@/lib/db/queries'
-import { JobCard } from '@/components/job-card'
-import { executeSearch } from '@/lib/agent/researcher'
+'use client'
 
-// Server Action to trigger search
-async function runSearch() {
-  'use server'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import type { CompanyDiscoveryRun, Company } from '@/types'
 
-  try {
-    // Call search execution directly (no HTTP request needed)
-    await executeSearch()
-
-    revalidatePath('/')
-    revalidatePath('/')
-    redirect(`/?search=complete&t=${Date.now()}`)
-  } catch (error: any) {
-    // Don't catch NEXT_REDIRECT errors - they're expected
-    if (error.message === 'NEXT_REDIRECT') {
-      throw error
-    }
-
-    console.error('Search action error:', error)
-    revalidatePath('/')
-    redirect('/?search=error')
+interface DashboardData {
+  recentRuns: CompanyDiscoveryRun[]
+  topCompanies: Company[]
+  stats: {
+    totalCompanies: number
+    totalResearched: number
+    totalDiscoveryRuns: number
   }
 }
 
-export default async function Dashboard({
-  searchParams
-}: {
-  searchParams: Promise<{ search?: string; status?: string }>
-}) {
-  const params = await searchParams
+export default function CompanyDiscoveryDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [starting, setStarting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Fetch jobs from database
-  const { jobs, total } = listJobs({
-    status: params.status,
-    limit: 100
-  })
+  useEffect(() => {
+    loadDashboard()
+  }, [])
+
+  async function loadDashboard() {
+    try {
+      // Fetch discovery runs and companies in parallel
+      const [runsResponse, companiesResponse] = await Promise.all([
+        fetch('/api/discovery'),
+        fetch('/api/companies?limit=5&status=researched')
+      ])
+
+      const runsData = await runsResponse.json()
+      const companiesData = await companiesResponse.json()
+
+      setData({
+        recentRuns: (runsData.runs || []).slice(0, 5),
+        topCompanies: companiesData.companies || [],
+        stats: {
+          totalCompanies: companiesData.total || 0,
+          totalResearched: companiesData.companies?.length || 0,
+          totalDiscoveryRuns: runsData.runs?.length || 0
+        }
+      })
+    } catch (err) {
+      setError('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function startDiscovery() {
+    setStarting(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/discovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          maxCompanies: 10,
+          researchBatchSize: 3
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        setError(result.error)
+      } else {
+        // Reload dashboard
+        await loadDashboard()
+      }
+    } catch (err) {
+      setError('Failed to start discovery')
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  function getStatusBadge(status: string) {
+    const colors: Record<string, string> = {
+      running: 'bg-blue-100 text-blue-800',
+      discovering: 'bg-blue-100 text-blue-800',
+      researching: 'bg-yellow-100 text-yellow-800',
+      analyzing: 'bg-purple-100 text-purple-800',
+      complete: 'bg-green-100 text-green-800',
+      failed: 'bg-red-100 text-red-800'
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
+
+  function getScoreColor(score: number | null): string {
+    if (!score) return 'text-gray-400'
+    if (score >= 8) return 'text-green-600'
+    if (score >= 6) return 'text-yellow-600'
+    return 'text-red-600'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Job Search Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Company Discovery</h1>
+            <p className="text-gray-600 mt-1">
+              Find companies matching your profile before job postings go public
+            </p>
+          </div>
           <div className="flex gap-3">
-            <form action={runSearch}>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium"
-              >
-                Run Search
-              </button>
-            </form>
-            <a
-              href="/companies"
-              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 font-medium"
+            <button
+              onClick={startDiscovery}
+              disabled={starting}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Companies
-            </a>
-            <a
+              {starting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Discovering...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Discover Companies
+                </>
+              )}
+            </button>
+            <Link
+              href="/companies"
+              className="bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 font-medium"
+            >
+              All Companies
+            </Link>
+            <Link
               href="/config"
-              className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 font-medium"
+              className="bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 font-medium"
             >
               Config
-            </a>
-            <a
-              href="/about"
-              className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 font-medium"
+            </Link>
+            <Link
+              href="/jobs"
+              className="bg-gray-400 text-white py-3 px-4 rounded-lg hover:bg-gray-500 font-medium text-sm"
             >
-              About
-            </a>
+              Legacy Jobs
+            </Link>
           </div>
         </div>
 
-        {/* Search Status Messages */}
-        {params.search === 'complete' && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 font-medium">✓ Search completed successfully! Check the jobs list below.</p>
-          </div>
-        )}
-        {params.search === 'error' && (
+        {/* Error */}
+        {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 font-medium">✗ Search failed. Please check your API keys and try again.</p>
+            <p className="text-red-800">{error}</p>
           </div>
         )}
 
-        {/* Job Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-1">Job Leads</h2>
-              <p className="text-gray-600">
-                {total === 0
-                  ? 'No jobs found yet. Click "Run Search" to get started!'
-                  : `Showing ${jobs.length} of ${total} jobs`}
-              </p>
-            </div>
-            <div className="flex gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{listJobs({ status: 'new' }).total}</div>
-                <div className="text-sm text-gray-600">New</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">{listJobs({ status: 'saved' }).total}</div>
-                <div className="text-sm text-gray-600">Saved</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{listJobs({ status: 'applied' }).total}</div>
-                <div className="text-sm text-gray-600">Applied</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <a
-            href="/"
-            className={`px-4 py-2 rounded-md font-medium ${!params.status
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            All Jobs
-          </a>
-          <a
-            href="/?status=new"
-            className={`px-4 py-2 rounded-md font-medium ${params.status === 'new'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            New
-          </a>
-          <a
-            href="/?status=saved"
-            className={`px-4 py-2 rounded-md font-medium ${params.status === 'saved'
-                ? 'bg-yellow-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            Saved
-          </a>
-          <a
-            href="/?status=applied"
-            className={`px-4 py-2 rounded-md font-medium ${params.status === 'applied'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            Applied
-          </a>
-          <a
-            href="/?status=dismissed"
-            className={`px-4 py-2 rounded-md font-medium ${params.status === 'dismissed'
-                ? 'bg-gray-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            Dismissed
-          </a>
-        </div>
-
-        {/* Job List */}
-        {jobs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-600 text-lg mb-4">
-              {params.status
-                ? `No jobs with status "${params.status}"`
-                : 'No jobs found yet'}
-            </p>
-            <p className="text-gray-500 mb-6">
-              Click the "🔍 Run Search" button above to find job opportunities that match your profile.
-            </p>
+        {/* Loading */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600">Loading dashboard...</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {jobs.map(job => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </div>
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="text-4xl font-bold text-blue-600">{data?.stats.totalCompanies || 0}</div>
+                <div className="text-gray-600">Total Companies</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="text-4xl font-bold text-green-600">{data?.stats.totalResearched || 0}</div>
+                <div className="text-gray-600">Fully Researched</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="text-4xl font-bold text-purple-600">{data?.stats.totalDiscoveryRuns || 0}</div>
+                <div className="text-gray-600">Discovery Runs</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8">
+              {/* Recent Discovery Runs */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-800">Recent Discoveries</h2>
+                </div>
+                {data?.recentRuns.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    No discoveries yet. Click "Discover Companies" to start!
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {data?.recentRuns.map(run => (
+                      <Link
+                        key={run.id}
+                        href={`/discovery/${run.id}`}
+                        className="block p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="text-sm text-gray-900">
+                              {new Date(run.startedAt).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {run.companiesDiscovered} discovered, {run.companiesResearched} researched
+                            </div>
+                          </div>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(run.status)}`}>
+                            {run.status}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Top Companies */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-800">Top Researched Companies</h2>
+                  <Link href="/companies" className="text-blue-600 hover:text-blue-800 text-sm">
+                    View all →
+                  </Link>
+                </div>
+                {data?.topCompanies.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    No companies researched yet.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {data?.topCompanies.map(company => (
+                      <Link
+                        key={company.id}
+                        href={`/companies/${company.id}`}
+                        className="block p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{company.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {company.industry || 'Unknown industry'} • {company.sizeEstimate || 'Unknown size'}
+                            </div>
+                          </div>
+                          <div className={`text-xl font-bold ${getScoreColor(company.overallScore)}`}>
+                            {company.overallScore || '-'}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* How it Works */}
+            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="font-semibold text-blue-900 mb-3">How Company Discovery Works</h3>
+              <div className="grid grid-cols-3 gap-6 text-sm text-blue-800">
+                <div>
+                  <div className="font-medium mb-1">1. Find Companies</div>
+                  <p>Searches funding news, tech blogs, and industry sources based on your profile preferences.</p>
+                </div>
+                <div>
+                  <div className="font-medium mb-1">2. Research Signals</div>
+                  <p>Gathers 5 signal types: funding, culture, tech stack, leadership changes, and job openings.</p>
+                </div>
+                <div>
+                  <div className="font-medium mb-1">3. Rank & Connect</div>
+                  <p>Scores companies on fit and discovers key contacts for networking outreach.</p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

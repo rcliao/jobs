@@ -417,10 +417,11 @@ function calculateDefaultScore(
   if (signals.length === 0) return 5
 
   const defaultWeights: Record<SignalCategory, number> = {
-    growth_funding: 0.25,
-    culture_work_style: 0.30,
-    tech_stack_engineering: 0.25,
-    leadership_changes: 0.20
+    growth_funding: 0.20,
+    culture_work_style: 0.25,
+    tech_stack_engineering: 0.20,
+    leadership_changes: 0.15,
+    job_openings: 0.20
   }
 
   const w = weights || defaultWeights
@@ -430,7 +431,8 @@ function calculateDefaultScore(
     growth_funding: [],
     culture_work_style: [],
     tech_stack_engineering: [],
-    leadership_changes: []
+    leadership_changes: [],
+    job_openings: []
   }
 
   for (const signal of signals) {
@@ -446,7 +448,7 @@ function calculateDefaultScore(
   for (const [category, categorySignals] of Object.entries(byCategory)) {
     if (categorySignals.length > 0) {
       const avgConfidence = categorySignals.reduce((sum, s) => sum + s.confidence, 0) / categorySignals.length
-      const weight = w[category as SignalCategory] || 0.25
+      const weight = w[category as SignalCategory] || 0.20
       weightedSum += avgConfidence * weight
       totalWeight += weight
     }

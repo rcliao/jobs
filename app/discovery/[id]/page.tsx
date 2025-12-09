@@ -93,14 +93,27 @@ export default function DiscoveryDetailPage({
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <Link href="/discovery" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
-            ← Back to Discovery
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Discovery Results</h1>
-          <p className="text-gray-600 mt-1">
-            {new Date(data.run.startedAt).toLocaleString()} • {data.summary.totalDiscovered} discovered, {data.summary.totalResearched} researched
-          </p>
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Discovery Results</h1>
+            <p className="text-gray-600 mt-1">
+              {new Date(data.run.startedAt).toLocaleString()} • {data.summary.totalDiscovered} discovered, {data.summary.totalResearched} researched
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 font-medium"
+            >
+              Home
+            </Link>
+            <Link
+              href="/discovery"
+              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 font-medium"
+            >
+              All Discoveries
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}

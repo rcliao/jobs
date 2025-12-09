@@ -11,6 +11,7 @@ import {
 import { triggerCompanyResearch } from '@/lib/agent/company-research'
 import type { SignalCategory, Contact } from '@/types'
 import { ContactStatusSelect } from './ContactStatusSelect'
+import { SignalCard } from './SignalCard'
 
 // Server Action to trigger research
 async function researchAction(formData: FormData) {
@@ -45,7 +46,8 @@ function getCategoryLabel(category: SignalCategory): string {
     growth_funding: 'Growth & Funding',
     culture_work_style: 'Culture & Work Style',
     tech_stack_engineering: 'Tech Stack & Engineering',
-    leadership_changes: 'Leadership Changes'
+    leadership_changes: 'Leadership Changes',
+    job_openings: 'Job Openings'
   }
   return labels[category] || category
 }
@@ -55,7 +57,8 @@ function getCategoryIcon(category: SignalCategory): string {
     growth_funding: '📈',
     culture_work_style: '🏢',
     tech_stack_engineering: '💻',
-    leadership_changes: '👔'
+    leadership_changes: '👔',
+    job_openings: '💼'
   }
   return icons[category] || '📋'
 }
@@ -115,7 +118,8 @@ export default async function CompanyDetailPage({
     growth_funding: [],
     culture_work_style: [],
     tech_stack_engineering: [],
-    leadership_changes: []
+    leadership_changes: [],
+    job_openings: []
   }
   for (const signal of signals) {
     if (signalsByCategory[signal.category]) {
@@ -248,39 +252,13 @@ export default async function CompanyDetailPage({
                   if (categorySignals.length === 0) return null
 
                   return (
-                    <div key={category} className="bg-white rounded-lg shadow-md p-4">
-                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <span>{getCategoryIcon(category)}</span>
-                        {getCategoryLabel(category)}
-                        <span className="text-sm font-normal text-gray-500">({categorySignals.length})</span>
-                      </h3>
-                      <div className="space-y-3">
-                        {categorySignals.slice(0, 5).map(signal => (
-                          <div key={signal.id} className="border-l-2 border-blue-200 pl-3">
-                            <p className="text-gray-700 text-sm">{signal.content}</p>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                              <span className="font-medium">Confidence: {signal.confidence}/10</span>
-                              {signal.signalDate && (
-                                <span className="text-gray-400">
-                                  {new Date(signal.signalDate).toLocaleDateString()}
-                                </span>
-                              )}
-                              <span className="text-gray-300">|</span>
-                              {signal.sourceUrl ? (
-                                <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                  {signal.source}
-                                </a>
-                              ) : (
-                                <span>{signal.source}</span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        {categorySignals.length > 5 && (
-                          <p className="text-sm text-gray-400">+{categorySignals.length - 5} more signals</p>
-                        )}
-                      </div>
-                    </div>
+                    <SignalCard
+                      key={category}
+                      category={category}
+                      signals={categorySignals}
+                      categoryLabel={getCategoryLabel(category)}
+                      categoryIcon={getCategoryIcon(category)}
+                    />
                   )
                 })}
               </div>

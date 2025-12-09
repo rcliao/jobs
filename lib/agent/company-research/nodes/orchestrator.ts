@@ -7,7 +7,8 @@ const SIGNAL_CATEGORIES: SignalCategory[] = [
   'growth_funding',
   'culture_work_style',
   'tech_stack_engineering',
-  'leadership_changes'
+  'leadership_changes',
+  'job_openings'
 ]
 
 /**

@@ -80,6 +80,14 @@ export function getDefaultSignalIterations(): Record<SignalCategory, SignalItera
       queriesExecuted: [],
       signalsFound: 0,
       needsMoreResearch: true
+    },
+    job_openings: {
+      category: 'job_openings',
+      iteration: 0,
+      maxIterations: 2,
+      queriesExecuted: [],
+      signalsFound: 0,
+      needsMoreResearch: true
     }
   }
 }

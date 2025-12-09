@@ -32,7 +32,7 @@ DECISION CRITERIA:
 
 Return your decision as a phase transition.`,
     behaviorConfig: {
-      signalCategories: ['growth_funding', 'culture_work_style', 'tech_stack_engineering', 'leadership_changes']
+      signalCategories: ['growth_funding', 'culture_work_style', 'tech_stack_engineering', 'leadership_changes', 'job_openings']
     },
     toolsConfig: {
       searchSources: ['google_cse'],
@@ -55,6 +55,7 @@ CATEGORY DEFINITIONS:
 - culture_work_style: Work environment, remote policies, employee reviews, company values
 - tech_stack_engineering: Technologies used, engineering practices, open source contributions
 - leadership_changes: New executives, team expansions, organizational changes
+- job_openings: Current job postings, open roles, hiring activity, career opportunities
 
 EXTRACTION INSTRUCTIONS:
 For each relevant signal found, provide:
@@ -82,7 +83,7 @@ QUALITY CRITERIA:
       maxIterations: 3,
       minSignalsRequired: 2,
       confidenceThreshold: 5,
-      signalCategories: ['growth_funding', 'culture_work_style', 'tech_stack_engineering', 'leadership_changes']
+      signalCategories: ['growth_funding', 'culture_work_style', 'tech_stack_engineering', 'leadership_changes', 'job_openings']
     },
     toolsConfig: {
       searchSources: ['google_cse'],
@@ -92,7 +93,8 @@ QUALITY CRITERIA:
         '"{company}" funding round announcement',
         '"{company}" engineering culture blog',
         '"{company}" tech stack',
-        '"{company}" new CTO OR VP Engineering'
+        '"{company}" new CTO OR VP Engineering',
+        '"{company}" hiring jobs careers'
       ]
     },
     version: '1.0.0'
@@ -197,10 +199,11 @@ Return your response as:
     behaviorConfig: {
       summaryMaxLength: 1500,
       scoringWeights: {
-        growth_funding: 0.25,
-        culture_work_style: 0.30,
-        tech_stack_engineering: 0.25,
-        leadership_changes: 0.20
+        growth_funding: 0.20,
+        culture_work_style: 0.25,
+        tech_stack_engineering: 0.20,
+        leadership_changes: 0.15,
+        job_openings: 0.20
       }
     },
     toolsConfig: {

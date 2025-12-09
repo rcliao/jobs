@@ -137,6 +137,7 @@ export type SignalCategory =
   | 'culture_work_style'
   | 'tech_stack_engineering'
   | 'leadership_changes'
+  | 'job_openings'
 
 export type ContactType =
   | 'founder'        // CEO, Co-founder, Founder
