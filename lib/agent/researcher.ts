@@ -11,6 +11,9 @@ import {
   getProfile,
   getAgentConfig
 } from '@/lib/db/queries'
+import { queueCompaniesFromJobs } from '@/lib/agent/company-research'
+import { HumanMessage } from '@langchain/core/messages'
+import { graph } from './graph'
 
 export interface SearchResult {
   searchRunId: string
@@ -18,8 +21,48 @@ export interface SearchResult {
   queries: string[]
 }
 
+// The main entry point that uses the agent graph
 export async function executeSearch(): Promise<SearchResult> {
-  console.log('=== Starting Job Search Execution ===')
+  console.log('=== Starting Job Search Execution via LangGraph ===')
+
+  // Load profile and agent config
+  const profile = getProfile()
+  const agentConfig = getAgentConfig()
+
+  if (!profile || !agentConfig) {
+    throw new Error('Profile or agent config not found. Please configure your settings first.')
+  }
+
+  // Initialize the graph with empty messages
+  const initialState = {
+    messages: [new HumanMessage("Start job search")],
+  }
+
+  // Run the graph
+  // @ts-ignore - LangGraph types can be tricky with strict TS
+  const result = await graph.invoke(initialState)
+
+  console.log('Graph execution completed.')
+  console.log('Final State:', result)
+
+  // Extract the search run ID from the state
+  const searchRunId = result.searchRunId
+
+  if (!searchRunId) {
+    throw new Error('Search failed to produce a run ID')
+  }
+
+  // Return placeholder result as the actual result is in DB
+  return {
+    searchRunId,
+    jobsFound: 0,
+    queries: []
+  }
+}
+
+// The actual search logic (formerly executeSearch), now called by the graph tool
+export async function performSearch(): Promise<SearchResult> {
+  console.log('=== Executing Underlying Search Logic ===')
 
   // Load profile and agent config
   const profile = getProfile()
@@ -135,6 +178,34 @@ export async function executeSearch(): Promise<SearchResult> {
     })
 
     console.log(`=== Search Complete: ${savedCount} jobs saved ===`)
+
+    // Step 6: Queue companies for background research
+    if (savedCount > 0) {
+      const savedJobs = searchResults.map((result, i) => ({
+        id: '', // Not needed for company extraction
+        title: result.title,
+        company: result.displayLink,
+        description: result.snippet,
+        url: result.link,
+        source: 'google_custom_search' as const,
+        location: extractLocation(result.snippet),
+        remote: isRemote(result.snippet),
+        postedDate: null,
+        score: scores[i]?.score ?? 0,
+        matchReasoning: scores[i]?.reasoning ?? '',
+        status: 'new' as const,
+        notes: null,
+        foundAt: new Date(),
+        searchId: searchRunId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }))
+
+      console.log('Step 6: Queueing companies for background research...')
+      queueCompaniesFromJobs(savedJobs).catch(err => {
+        console.error('Failed to queue companies for research:', err)
+      })
+    }
 
     return {
       searchRunId,

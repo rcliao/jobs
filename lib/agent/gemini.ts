@@ -1,5 +1,6 @@
 // Gemini AI integration for query generation and job scoring
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import type { Profile, AgentConfig } from '@/types'
 
 let genAI: GoogleGenerativeAI | null = null
@@ -16,6 +17,19 @@ function getGeminiClient() {
   }
 
   return genAI
+}
+
+export function getGeminiModel() {
+  const apiKey = process.env.GOOGLE_API_KEY
+  if (!apiKey) {
+    throw new Error('Missing GOOGLE_API_KEY in .env.local')
+  }
+
+  return new ChatGoogleGenerativeAI({
+    apiKey,
+    model: 'gemini-1.5-flash',
+    maxOutputTokens: 2048,
+  })
 }
 
 export async function generateSearchQueries(

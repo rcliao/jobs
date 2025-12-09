@@ -5,13 +5,106 @@ export interface GoogleSearchResult {
   link: string
   snippet: string
   displayLink: string
+  // Date metadata from pagemap or snippet parsing
+  publishedDate: string | null  // ISO date string if available
+}
+
+// Raw Google API response item
+interface GoogleApiItem {
+  title: string
+  link: string
+  snippet: string
+  displayLink: string
+  pagemap?: {
+    metatags?: Array<{
+      'article:published_time'?: string
+      'og:updated_time'?: string
+      'datePublished'?: string
+      'date'?: string
+      'publish_date'?: string
+      'article:modified_time'?: string
+    }>
+  }
 }
 
 export interface GoogleSearchResponse {
-  items?: GoogleSearchResult[]
+  items?: GoogleApiItem[]
   searchInformation?: {
     totalResults: string
   }
+}
+
+/**
+ * Extract publication date from Google API pagemap or snippet
+ */
+function extractPublishedDate(item: GoogleApiItem): string | null {
+  // Try to get date from pagemap metatags
+  const metatags = item.pagemap?.metatags?.[0]
+  if (metatags) {
+    const dateString = metatags['article:published_time']
+      || metatags['datePublished']
+      || metatags['og:updated_time']
+      || metatags['publish_date']
+      || metatags['date']
+      || metatags['article:modified_time']
+
+    if (dateString) {
+      try {
+        const date = new Date(dateString)
+        if (!isNaN(date.getTime())) {
+          return date.toISOString()
+        }
+      } catch {
+        // Invalid date, continue
+      }
+    }
+  }
+
+  // Try to parse date from snippet (common patterns like "Jan 15, 2024" or "2024-01-15")
+  const snippet = item.snippet || ''
+  const title = item.title || ''
+  const text = `${title} ${snippet}`
+
+  // Pattern: "Month Day, Year" (e.g., "Jan 15, 2024" or "January 15, 2024")
+  const monthDayYear = text.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}\b/i)
+  if (monthDayYear) {
+    try {
+      const date = new Date(monthDayYear[0].replace(',', ''))
+      if (!isNaN(date.getTime())) {
+        return date.toISOString()
+      }
+    } catch {
+      // Invalid date
+    }
+  }
+
+  // Pattern: "Day Month Year" (e.g., "15 Jan 2024")
+  const dayMonthYear = text.match(/\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\b/i)
+  if (dayMonthYear) {
+    try {
+      const date = new Date(dayMonthYear[0])
+      if (!isNaN(date.getTime())) {
+        return date.toISOString()
+      }
+    } catch {
+      // Invalid date
+    }
+  }
+
+  // Pattern: YYYY-MM-DD or YYYY/MM/DD
+  const isoDate = text.match(/\b\d{4}[-/]\d{2}[-/]\d{2}\b/)
+  if (isoDate) {
+    try {
+      const date = new Date(isoDate[0].replace(/\//g, '-'))
+      if (!isNaN(date.getTime())) {
+        return date.toISOString()
+      }
+    } catch {
+      // Invalid date
+    }
+  }
+
+  return null
 }
 
 export async function searchGoogle(query: string, dateRestrict: string = 'm1'): Promise<GoogleSearchResult[]> {
@@ -41,7 +134,14 @@ export async function searchGoogle(query: string, dateRestrict: string = 'm1'): 
 
     const data: GoogleSearchResponse = await response.json()
 
-    return data.items || []
+    // Transform API items to include extracted dates
+    return (data.items || []).map(item => ({
+      title: item.title,
+      link: item.link,
+      snippet: item.snippet,
+      displayLink: item.displayLink,
+      publishedDate: extractPublishedDate(item)
+    }))
   } catch (error) {
     console.error('Google Search error:', error)
     throw error

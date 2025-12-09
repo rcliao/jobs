@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 import { getDb } from './client'
-import { ALL_TABLES, JOBS_INDEXES } from './schema'
+import { ALL_TABLES, ALL_INDEXES } from './schema'
 
 async function runMigrations() {
   console.log('Running database migrations...')
@@ -16,7 +16,7 @@ async function runMigrations() {
     console.log('✓ Tables created')
 
     // Create indexes
-    for (const indexSql of JOBS_INDEXES) {
+    for (const indexSql of ALL_INDEXES) {
       db.exec(indexSql)
     }
 

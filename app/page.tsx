@@ -51,20 +51,26 @@ export default async function Dashboard({
                 type="submit"
                 className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium"
               >
-                🔍 Run Search
+                Run Search
               </button>
             </form>
+            <a
+              href="/companies"
+              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 font-medium"
+            >
+              Companies
+            </a>
             <a
               href="/config"
               className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 font-medium"
             >
-              ⚙️ Configuration
+              Config
             </a>
             <a
               href="/about"
               className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 font-medium"
             >
-              ℹ️ About
+              About
             </a>
           </div>
         </div>

@@ -1,7 +1,9 @@
 #!/usr/bin/env tsx
 import { getProfile, updateProfile, getAgentConfig, updateAgentConfig } from './queries'
+import { getResearchAgentConfig, createOrUpdateResearchAgentConfig } from './company-queries'
 import { defaultProfile } from '@/config/default-profile'
 import { defaultAgentConfig } from '@/config/default-agent-config'
+import { defaultResearchAgentConfigs } from '@/config/default-research-agent-configs'
 
 async function seed() {
   console.log('Seeding database with default data...')
@@ -23,6 +25,22 @@ async function seed() {
     } else {
       updateAgentConfig(defaultAgentConfig)
       console.log('✓ Agent config created')
+    }
+
+    // Seed research agent configs
+    for (const config of defaultResearchAgentConfigs) {
+      const existing = getResearchAgentConfig(config.agentType)
+      if (existing) {
+        console.log(`Research agent config '${config.agentType}' already exists, skipping...`)
+      } else {
+        createOrUpdateResearchAgentConfig(config.agentType, {
+          systemPrompt: config.systemPrompt,
+          behaviorConfig: config.behaviorConfig,
+          toolsConfig: config.toolsConfig,
+          version: config.version
+        })
+        console.log(`✓ Research agent config '${config.agentType}' created`)
+      }
     }
 
     console.log('Database seeding complete!')
