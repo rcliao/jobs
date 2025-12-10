@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { CompanyDiscoveryRun, Company } from '@/types'
+import { useProfile } from '@/lib/context/profile-context'
 
 interface DashboardData {
   recentRuns: CompanyDiscoveryRun[]
@@ -15,21 +16,25 @@ interface DashboardData {
 }
 
 export default function CompanyDiscoveryDashboard() {
+  const { profileId, isLoading: profileLoading } = useProfile()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadDashboard()
-  }, [])
+    if (!profileLoading) {
+      loadDashboard()
+    }
+  }, [profileId, profileLoading])
 
   async function loadDashboard() {
+    setLoading(true)
     try {
-      // Fetch discovery runs and companies in parallel
+      // Fetch discovery runs and companies in parallel (filtered by profileId)
       const [runsResponse, companiesResponse] = await Promise.all([
-        fetch('/api/discovery'),
-        fetch('/api/companies?limit=5&status=researched')
+        fetch(`/api/discovery?profileId=${encodeURIComponent(profileId)}`),
+        fetch(`/api/companies?profileId=${encodeURIComponent(profileId)}&limit=5&status=researched`)
       ])
 
       const runsData = await runsResponse.json()
@@ -60,6 +65,7 @@ export default function CompanyDiscoveryDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          profileId,
           maxCompanies: 10,
           researchBatchSize: 3
         })
@@ -110,48 +116,28 @@ export default function CompanyDiscoveryDashboard() {
               Find companies matching your profile before job postings go public
             </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={startDiscovery}
-              disabled={starting}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {starting ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Discovering...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Discover Companies
-                </>
-              )}
-            </button>
-            <Link
-              href="/companies"
-              className="bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 font-medium"
-            >
-              All Companies
-            </Link>
-            <Link
-              href="/config"
-              className="bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 font-medium"
-            >
-              Config
-            </Link>
-            <Link
-              href="/jobs"
-              className="bg-gray-400 text-white py-3 px-4 rounded-lg hover:bg-gray-500 font-medium text-sm"
-            >
-              Legacy Jobs
-            </Link>
-          </div>
+          <button
+            onClick={startDiscovery}
+            disabled={starting || profileLoading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {starting ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Discovering...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Discover Companies
+              </>
+            )}
+          </button>
         </div>
 
         {/* Error */}

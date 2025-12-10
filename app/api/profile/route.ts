@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getProfile, updateProfile } from '@/lib/db/queries'
+import { getProfile, updateProfile, createProfile } from '@/lib/db/queries'
+import { defaultProfile } from '@/config/default-profile'
 import type { UpdateProfileRequest } from '@/types'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const profile = getProfile()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id') || 'default'
+
+    const profile = getProfile(id)
 
     if (!profile) {
       return NextResponse.json(
@@ -25,6 +29,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id') || 'default'
+
     const data: UpdateProfileRequest = await request.json()
 
     // Basic validation
@@ -35,7 +42,13 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const profile = updateProfile(data)
+    // Check if profile exists, if not create it first
+    const existing = getProfile(id)
+    if (!existing) {
+      createProfile(defaultProfile, id)
+    }
+
+    const profile = updateProfile(data, id)
 
     return NextResponse.json(profile)
   } catch (error) {

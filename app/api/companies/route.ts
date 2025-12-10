@@ -9,12 +9,14 @@ import { triggerCompanyResearch } from '@/lib/agent/company-research'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
+    const profileId = searchParams.get('profileId') || 'default'
     const status = searchParams.get('status')
     const minScore = searchParams.get('minScore')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
     const result = listCompanies({
+      profileId,
       researchStatus: status || undefined,
       minScore: minScore ? parseInt(minScore) : undefined,
       limit,
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, triggerResearchNow = false } = body
+    const { name, profileId = 'default', triggerResearchNow = false } = body
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json(
@@ -44,13 +46,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create or get existing company
-    const company = getOrCreateCompany(name.trim())
+    // Create or get existing company (scoped by profile)
+    const company = getOrCreateCompany(name.trim(), profileId)
 
     // Optionally trigger research
     if (triggerResearchNow) {
       // Fire and forget - don't wait for research to complete
-      triggerCompanyResearch(name.trim()).catch(err => {
+      triggerCompanyResearch(name.trim(), profileId).catch(err => {
         console.error(`Background research failed for ${name}:`, err)
       })
     }

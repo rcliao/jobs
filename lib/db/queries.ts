@@ -87,6 +87,12 @@ export function getProfile(id: string = 'default'): Profile | null {
   return row ? rowToProfile(row) : null
 }
 
+export function getAllProfiles(): Profile[] {
+  const stmt = db.prepare('SELECT * FROM profiles ORDER BY created_at')
+  const rows = stmt.all() as ProfileRow[]
+  return rows.map(rowToProfile)
+}
+
 export function createProfile(data: UpdateProfileRequest, id: string = 'default'): Profile {
   const now = Math.floor(Date.now() / 1000)
 
@@ -228,6 +234,7 @@ export function getJob(id: string): Job | null {
 }
 
 export interface ListJobsParams {
+  profileId?: string
   status?: string
   minScore?: number
   limit?: number
@@ -235,10 +242,10 @@ export interface ListJobsParams {
 }
 
 export function listJobs(params: ListJobsParams = {}) {
-  const { status, minScore, limit = 50, offset = 0 } = params
+  const { profileId = 'default', status, minScore, limit = 50, offset = 0 } = params
 
-  let query = 'SELECT * FROM jobs WHERE 1=1'
-  const queryParams: (string | number)[] = []
+  let query = 'SELECT * FROM jobs WHERE profile_id = ?'
+  const queryParams: (string | number)[] = [profileId]
 
   if (status) {
     query += ' AND status = ?'
@@ -257,8 +264,8 @@ export function listJobs(params: ListJobsParams = {}) {
   const rows = stmt.all(...queryParams) as JobRow[]
 
   // Get total count
-  let countQuery = 'SELECT COUNT(*) as total FROM jobs WHERE 1=1'
-  const countParams: (string | number)[] = []
+  let countQuery = 'SELECT COUNT(*) as total FROM jobs WHERE profile_id = ?'
+  const countParams: (string | number)[] = [profileId]
 
   if (status) {
     countQuery += ' AND status = ?'
@@ -315,15 +322,15 @@ export function updateJob(id: string, data: UpdateJobRequest): Job | null {
   return getJob(id)
 }
 
-export function createJob(job: Omit<Job, 'createdAt' | 'updatedAt'>): Job {
+export function createJob(job: Omit<Job, 'createdAt' | 'updatedAt'>, profileId: string = 'default'): Job {
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
     INSERT INTO jobs (
       id, title, company, description, url, source, location, remote,
       posted_date, score, match_reasoning, status, notes, found_at,
-      search_id, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      search_id, profile_id, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -342,6 +349,7 @@ export function createJob(job: Omit<Job, 'createdAt' | 'updatedAt'>): Job {
     job.notes,
     Math.floor(job.foundAt.getTime() / 1000),
     job.searchId,
+    profileId,
     now,
     now
   )
@@ -357,13 +365,13 @@ export function getSearchRun(id: string): SearchRun | null {
   return row ? rowToSearchRun(row) : null
 }
 
-export function createSearchRun(data: Omit<SearchRun, 'createdAt'>): SearchRun {
+export function createSearchRun(data: Omit<SearchRun, 'createdAt'>, profileId: string = 'default'): SearchRun {
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
     INSERT INTO search_runs (
-      id, executed_at, queries, results_count, status, error_message, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      id, executed_at, queries, results_count, status, error_message, profile_id, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -373,6 +381,7 @@ export function createSearchRun(data: Omit<SearchRun, 'createdAt'>): SearchRun {
     data.resultsCount,
     data.status,
     data.errorMessage,
+    profileId,
     now
   )
 

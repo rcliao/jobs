@@ -1,21 +1,17 @@
+'use client'
+
+import { useState } from 'react'
 import type { Job } from '@/types'
-import { revalidatePath } from 'next/cache'
-import { updateJob } from '@/lib/db/queries'
 
-// Server Actions for updating job status
-async function updateJobStatus(jobId: string, status: Job['status']) {
-  'use server'
-
-  try {
-    // Call database function directly (no HTTP request needed)
-    updateJob(jobId, { status })
-    revalidatePath('/')
-  } catch (error) {
-    console.error('Error updating job status:', error)
-  }
+interface JobCardProps {
+  job: Job
+  onStatusChange?: (jobId: string, newStatus: Job['status']) => void
 }
 
-export function JobCard({ job }: { job: Job }) {
+export function JobCard({ job, onStatusChange }: JobCardProps) {
+  const [updating, setUpdating] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState(job.status)
+
   const statusColors = {
     new: 'bg-blue-100 text-blue-800',
     saved: 'bg-yellow-100 text-yellow-800',
@@ -28,6 +24,26 @@ export function JobCard({ job }: { job: Job }) {
     if (score >= 6) return 'text-blue-600 font-semibold'
     if (score >= 4) return 'text-yellow-600'
     return 'text-gray-600'
+  }
+
+  async function handleStatusChange(newStatus: Job['status']) {
+    setUpdating(true)
+    try {
+      const response = await fetch(`/api/jobs/${job.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (response.ok) {
+        setCurrentStatus(newStatus)
+        onStatusChange?.(job.id, newStatus)
+      }
+    } catch (error) {
+      console.error('Error updating job status:', error)
+    } finally {
+      setUpdating(false)
+    }
   }
 
   return (
@@ -46,15 +62,15 @@ export function JobCard({ job }: { job: Job }) {
           <span className={`text-2xl font-bold ${scoreColor(job.score)}`}>
             {job.score}/10
           </span>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[job.status]}`}>
-            {job.status}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[currentStatus]}`}>
+            {currentStatus}
           </span>
         </div>
       </div>
 
       <div className="text-sm text-gray-500 mb-3">
         <span>{job.location || 'Location not specified'}</span>
-        {job.remote && <span className="ml-3 text-green-600 font-medium">🌐 Remote</span>}
+        {job.remote && <span className="ml-3 text-green-600 font-medium">Remote</span>}
       </div>
 
       <p className="text-gray-700 text-sm mb-4 line-clamp-2">
@@ -68,55 +84,50 @@ export function JobCard({ job }: { job: Job }) {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {job.status === 'new' && (
+        {currentStatus === 'new' && (
           <>
-            <form action={updateJobStatus.bind(null, job.id, 'saved')}>
-              <button
-                type="submit"
-                className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm font-medium"
-              >
-                💾 Save
-              </button>
-            </form>
-            <form action={updateJobStatus.bind(null, job.id, 'dismissed')}>
-              <button
-                type="submit"
-                className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
-              >
-                ✕ Dismiss
-              </button>
-            </form>
-          </>
-        )}
-        {job.status === 'saved' && (
-          <>
-            <form action={updateJobStatus.bind(null, job.id, 'applied')}>
-              <button
-                type="submit"
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
-              >
-                ✓ Mark Applied
-              </button>
-            </form>
-            <form action={updateJobStatus.bind(null, job.id, 'new')}>
-              <button
-                type="submit"
-                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-              >
-                ← Back to New
-              </button>
-            </form>
-          </>
-        )}
-        {(job.status === 'applied' || job.status === 'dismissed') && (
-          <form action={updateJobStatus.bind(null, job.id, 'new')}>
             <button
-              type="submit"
-              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+              onClick={() => handleStatusChange('saved')}
+              disabled={updating}
+              className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm font-medium disabled:opacity-50"
             >
-              ← Back to New
+              Save
             </button>
-          </form>
+            <button
+              onClick={() => handleStatusChange('dismissed')}
+              disabled={updating}
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium disabled:opacity-50"
+            >
+              Dismiss
+            </button>
+          </>
+        )}
+        {currentStatus === 'saved' && (
+          <>
+            <button
+              onClick={() => handleStatusChange('applied')}
+              disabled={updating}
+              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium disabled:opacity-50"
+            >
+              Mark Applied
+            </button>
+            <button
+              onClick={() => handleStatusChange('new')}
+              disabled={updating}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
+            >
+              Back to New
+            </button>
+          </>
+        )}
+        {(currentStatus === 'applied' || currentStatus === 'dismissed') && (
+          <button
+            onClick={() => handleStatusChange('new')}
+            disabled={updating}
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
+          >
+            Back to New
+          </button>
         )}
         <a
           href={job.url}
@@ -124,7 +135,7 @@ export function JobCard({ job }: { job: Job }) {
           rel="noopener noreferrer"
           className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium"
         >
-          🔗 View Posting
+          View Posting
         </a>
       </div>
 

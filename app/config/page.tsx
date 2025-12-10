@@ -1,69 +1,150 @@
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { getProfile, updateProfile, getAgentConfig, updateAgentConfig } from '@/lib/db/queries'
+'use client'
 
-// Server Action for updating profile
-async function updateProfileAction(formData: FormData) {
-  'use server'
+import { useState, useEffect, Suspense } from 'react'
+import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useProfile } from '@/lib/context/profile-context'
+import type { Profile, AgentConfig } from '@/types'
 
-  const profile = {
-    targetRole: formData.get('targetRole') as string,
-    seniority: formData.get('seniority')?.toString().split(',').map(s => s.trim()) || [],
-    technicalSkills: {
-      primary: formData.get('primarySkills')?.toString().split(',').map(s => s.trim()) || [],
-      secondary: formData.get('secondarySkills')?.toString().split(',').map(s => s.trim()) || []
-    },
-    company: {
-      stage: formData.get('companyStage')?.toString().split(',').map(s => s.trim()) || [],
-      industry: formData.get('industry')?.toString().split(',').map(s => s.trim()) || [],
-      sizeRange: formData.get('sizeRange') as string
-    },
-    location: {
-      preferences: formData.get('locationPrefs')?.toString().split(',').map(s => s.trim()) || [],
-      remoteOk: formData.get('remoteOk') === 'on'
-    },
-    compensation: {
-      minimum: parseInt(formData.get('minComp') as string) || 0,
-      target: parseInt(formData.get('targetComp') as string) || 0
-    },
-    avoid: formData.get('avoid')?.toString().split(',').map(s => s.trim()) || [],
-    mustHave: formData.get('mustHave')?.toString().split(',').map(s => s.trim()) || [],
-    includedSites: formData.get('includedSites')?.toString().split(',').map(s => s.trim()) || [],
-    excludedSites: formData.get('excludedSites')?.toString().split(',').map(s => s.trim()) || []
+function ConfigPageContent() {
+  const { profileId, profile: contextProfile, isLoading: profileLoading, refreshProfile } = useProfile()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const savedParam = searchParams.get('saved')
+
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [agentConfig, setAgentConfig] = useState<AgentConfig | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(savedParam === 'profile' ? 'Profile saved successfully!' : savedParam === 'agent' ? 'Agent configuration saved successfully!' : null)
+
+  useEffect(() => {
+    if (!profileLoading) {
+      loadConfig()
+    }
+  }, [profileId, profileLoading])
+
+  async function loadConfig() {
+    setLoading(true)
+    try {
+      const [profileRes, agentRes] = await Promise.all([
+        fetch(`/api/profile?id=${encodeURIComponent(profileId)}`),
+        fetch('/api/agent-config')
+      ])
+
+      if (profileRes.ok) {
+        setProfile(await profileRes.json())
+      }
+      if (agentRes.ok) {
+        setAgentConfig(await agentRes.json())
+      }
+    } catch (err) {
+      setError('Failed to load configuration')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  updateProfile(profile)
-  revalidatePath('/config')
-  revalidatePath('/')
-  redirect('/config?saved=profile')
-}
+  async function handleProfileSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving('profile')
+    setError(null)
+    setSuccess(null)
 
-// Server Action for updating agent config
-async function updateAgentConfigAction(formData: FormData) {
-  'use server'
+    const formData = new FormData(e.currentTarget)
 
-  const config = {
-    systemPrompt: formData.get('systemPrompt') as string,
-    searchPatterns: formData.get('searchPatterns')?.toString().split('\n').map(s => s.trim()).filter(Boolean),
-    version: formData.get('version') as string
+    const profileData = {
+      targetRole: formData.get('targetRole') as string,
+      seniority: formData.get('seniority')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+      technicalSkills: {
+        primary: formData.get('primarySkills')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+        secondary: formData.get('secondarySkills')?.toString().split(',').map(s => s.trim()).filter(Boolean) || []
+      },
+      company: {
+        stage: formData.get('companyStage')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+        industry: formData.get('industry')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+        sizeRange: formData.get('sizeRange') as string
+      },
+      location: {
+        preferences: formData.get('locationPrefs')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+        remoteOk: formData.get('remoteOk') === 'on'
+      },
+      compensation: {
+        minimum: parseInt(formData.get('minComp') as string) || 0,
+        target: parseInt(formData.get('targetComp') as string) || 0
+      },
+      avoid: formData.get('avoid')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+      mustHave: formData.get('mustHave')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+      includedSites: formData.get('includedSites')?.toString().split(',').map(s => s.trim()).filter(Boolean) || [],
+      excludedSites: formData.get('excludedSites')?.toString().split(',').map(s => s.trim()).filter(Boolean) || []
+    }
+
+    try {
+      const response = await fetch(`/api/profile?id=${encodeURIComponent(profileId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+      })
+
+      if (response.ok) {
+        setProfile(await response.json())
+        setSuccess('Profile saved successfully!')
+        refreshProfile()
+      } else {
+        setError('Failed to save profile')
+      }
+    } catch (err) {
+      setError('Failed to save profile')
+    } finally {
+      setSaving(null)
+    }
   }
 
-  updateAgentConfig(config)
-  revalidatePath('/config')
-  revalidatePath('/')
-  redirect('/config?saved=agent')
-}
+  async function handleAgentConfigSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving('agent')
+    setError(null)
+    setSuccess(null)
 
-export default async function ConfigPage({
-  searchParams
-}: {
-  searchParams: Promise<{ saved?: string }>
-}) {
-  // Await searchParams (Next.js 16 requirement)
-  const params = await searchParams
+    const formData = new FormData(e.currentTarget)
 
-  const profile = getProfile()
-  const agentConfig = getAgentConfig()
+    const configData = {
+      systemPrompt: formData.get('systemPrompt') as string,
+      searchPatterns: formData.get('searchPatterns')?.toString().split('\n').map(s => s.trim()).filter(Boolean),
+      version: formData.get('version') as string
+    }
+
+    try {
+      const response = await fetch('/api/agent-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configData)
+      })
+
+      if (response.ok) {
+        setAgentConfig(await response.json())
+        setSuccess('Agent configuration saved successfully!')
+      } else {
+        setError('Failed to save agent config')
+      }
+    } catch (err) {
+      setError('Failed to save agent config')
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  if (loading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Loading configuration...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!profile || !agentConfig) {
     return (
@@ -83,31 +164,28 @@ export default async function ConfigPage({
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configuration</h1>
-          <a
-            href="/"
-            className="text-blue-600 hover:text-blue-800 underline"
-          >
-            ← Back to Dashboard
-          </a>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Configuration</h1>
+            <p className="text-gray-600 mt-1">Editing profile: <span className="font-medium">{profileId}</span></p>
+          </div>
         </div>
 
-        {/* Success Messages */}
-        {params.saved === 'profile' && (
+        {/* Success/Error Messages */}
+        {success && (
           <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 font-medium">✓ Profile saved successfully!</p>
+            <p className="text-green-800 font-medium">{success}</p>
           </div>
         )}
-        {params.saved === 'agent' && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 font-medium">✓ Agent configuration saved successfully!</p>
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 font-medium">{error}</p>
           </div>
         )}
 
         {/* Profile Form */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Job Search Profile</h2>
-          <form action={updateProfileAction} className="space-y-6">
+          <form onSubmit={handleProfileSubmit} className="space-y-6">
             <div>
               <label htmlFor="targetRole" className="block text-sm font-medium text-gray-700 mb-1">
                 Target Role
@@ -320,9 +398,10 @@ export default async function ConfigPage({
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
+              disabled={saving === 'profile'}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Profile
+              {saving === 'profile' ? 'Saving...' : 'Save Profile'}
             </button>
           </form>
         </div>
@@ -330,7 +409,7 @@ export default async function ConfigPage({
         {/* Agent Config Form */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Agent Configuration</h2>
-          <form action={updateAgentConfigAction} className="space-y-6">
+          <form onSubmit={handleAgentConfigSubmit} className="space-y-6">
             <div>
               <label htmlFor="version" className="block text-sm font-medium text-gray-700 mb-1">
                 Config Version
@@ -378,17 +457,35 @@ export default async function ConfigPage({
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-medium"
+              disabled={saving === 'agent'}
+              className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Agent Config
+              {saving === 'agent' ? 'Saving...' : 'Save Agent Config'}
             </button>
           </form>
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          Last updated: {new Date(profile.updatedAt).toLocaleString()}
+          Last updated: {profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : 'Unknown'}
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfigPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <ConfigPageContent />
+    </Suspense>
   )
 }

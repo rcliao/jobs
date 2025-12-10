@@ -26,14 +26,14 @@ export interface CompanyResearchResult {
 /**
  * Trigger research for a specific company by name
  */
-export async function triggerCompanyResearch(companyName: string): Promise<CompanyResearchResult> {
-  console.log(`Starting research for company: ${companyName}`)
+export async function triggerCompanyResearch(companyName: string, profileId: string = 'default'): Promise<CompanyResearchResult> {
+  console.log(`Starting research for company: ${companyName} (profile: ${profileId})`)
 
-  // Get or create the company
-  const company = getOrCreateCompany(companyName)
+  // Get or create the company (scoped by profile)
+  const company = getOrCreateCompany(companyName, profileId)
 
   // Create a research run
-  const researchRunId = createCompanyResearchRun(company.id)
+  const researchRunId = createCompanyResearchRun(company.id, profileId)
 
   // Build initial state
   const initialState = {
@@ -103,9 +103,9 @@ function normalizeCompanyName(name: string): string {
  */
 export async function queueCompaniesFromJobs(
   jobs: { company: string }[],
-  options: { maxResearchAge?: number } = {}
+  options: { maxResearchAge?: number; profileId?: string } = {}
 ): Promise<{ queued: string[]; skipped: string[] }> {
-  const { maxResearchAge = 30 } = options // Days
+  const { maxResearchAge = 30, profileId = 'default' } = options // Days
 
   const uniqueCompanies = [...new Set(jobs.map(j => normalizeCompanyName(j.company)))]
   const queued: string[] = []
@@ -118,8 +118,8 @@ export async function queueCompaniesFromJobs(
       continue
     }
 
-    // Check if already researched recently
-    const existing = getCompanyByName(companyName)
+    // Check if already researched recently (within this profile)
+    const existing = getCompanyByName(companyName, profileId)
 
     if (existing?.lastResearchedAt) {
       const age = Date.now() - existing.lastResearchedAt.getTime()
@@ -131,7 +131,7 @@ export async function queueCompaniesFromJobs(
 
     // Queue for research (don't await - fire and forget)
     queued.push(companyName)
-    triggerCompanyResearch(companyName).catch(err => {
+    triggerCompanyResearch(companyName, profileId).catch(err => {
       console.error(`Background research failed for ${companyName}:`, err)
     })
   }
@@ -145,23 +145,24 @@ export async function queueCompaniesFromJobs(
  * Returns results for all processed companies
  */
 export async function runScheduledResearch(
-  limit: number = 5
+  limit: number = 5,
+  profileId: string = 'default'
 ): Promise<CompanyResearchResult[]> {
-  const companies = getCompaniesNeedingResearch(limit)
+  const companies = getCompaniesNeedingResearch(limit, profileId)
 
   if (companies.length === 0) {
     console.log('No companies need research')
     return []
   }
 
-  console.log(`Running scheduled research for ${companies.length} companies`)
+  console.log(`Running scheduled research for ${companies.length} companies (profile: ${profileId})`)
 
   const results: CompanyResearchResult[] = []
 
   // Process sequentially to respect rate limits
   for (const company of companies) {
     try {
-      const result = await triggerCompanyResearch(company.name)
+      const result = await triggerCompanyResearch(company.name, profileId)
       results.push(result)
 
       // Small delay between companies to respect API limits

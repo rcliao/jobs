@@ -120,29 +120,30 @@ export function getCompany(id: string): Company | null {
   return row ? rowToCompany(row) : null
 }
 
-export function getCompanyByName(name: string): Company | null {
-  const stmt = db.prepare('SELECT * FROM companies WHERE name = ?')
-  const row = stmt.get(name) as CompanyRow | undefined
+export function getCompanyByName(name: string, profileId: string = 'default'): Company | null {
+  const stmt = db.prepare('SELECT * FROM companies WHERE name = ? AND profile_id = ?')
+  const row = stmt.get(name, profileId) as CompanyRow | undefined
   return row ? rowToCompany(row) : null
 }
 
-export function getOrCreateCompany(name: string): Company {
-  const existing = getCompanyByName(name)
+export function getOrCreateCompany(name: string, profileId: string = 'default'): Company {
+  const existing = getCompanyByName(name, profileId)
   if (existing) return existing
 
   const id = randomUUID()
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
-    INSERT INTO companies (id, name, research_status, created_at, updated_at)
-    VALUES (?, ?, 'pending', ?, ?)
+    INSERT INTO companies (id, name, profile_id, research_status, created_at, updated_at)
+    VALUES (?, ?, ?, 'pending', ?, ?)
   `)
-  stmt.run(id, name, now, now)
+  stmt.run(id, name, profileId, now, now)
 
   return getCompany(id)!
 }
 
 export interface ListCompaniesParams {
+  profileId?: string
   researchStatus?: string
   minScore?: number
   limit?: number
@@ -150,10 +151,10 @@ export interface ListCompaniesParams {
 }
 
 export function listCompanies(params: ListCompaniesParams = {}) {
-  const { researchStatus, minScore, limit = 50, offset = 0 } = params
+  const { profileId = 'default', researchStatus, minScore, limit = 50, offset = 0 } = params
 
-  let query = 'SELECT * FROM companies WHERE 1=1'
-  const queryParams: (string | number)[] = []
+  let query = 'SELECT * FROM companies WHERE profile_id = ?'
+  const queryParams: (string | number)[] = [profileId]
 
   if (researchStatus) {
     query += ' AND research_status = ?'
@@ -172,8 +173,8 @@ export function listCompanies(params: ListCompaniesParams = {}) {
   const rows = stmt.all(...queryParams) as CompanyRow[]
 
   // Get total count
-  let countQuery = 'SELECT COUNT(*) as total FROM companies WHERE 1=1'
-  const countParams: (string | number)[] = []
+  let countQuery = 'SELECT COUNT(*) as total FROM companies WHERE profile_id = ?'
+  const countParams: (string | number)[] = [profileId]
 
   if (researchStatus) {
     countQuery += ' AND research_status = ?'
@@ -260,18 +261,19 @@ export function updateCompany(
   return getCompany(id)
 }
 
-export function getCompaniesNeedingResearch(limit: number = 5): Company[] {
+export function getCompaniesNeedingResearch(limit: number = 5, profileId: string = 'default'): Company[] {
   const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60
 
   const stmt = db.prepare(`
     SELECT * FROM companies
-    WHERE research_status = 'pending'
-       OR (research_status = 'researched' AND last_researched_at < ?)
+    WHERE profile_id = ?
+      AND (research_status = 'pending'
+       OR (research_status = 'researched' AND last_researched_at < ?))
     ORDER BY last_researched_at ASC NULLS FIRST
     LIMIT ?
   `)
 
-  const rows = stmt.all(thirtyDaysAgo, limit) as CompanyRow[]
+  const rows = stmt.all(profileId, thirtyDaysAgo, limit) as CompanyRow[]
   return rows.map(rowToCompany)
 }
 
@@ -285,15 +287,15 @@ export function getCompanyResearchRun(id: string): CompanyResearchRun | null {
   return row ? rowToCompanyResearchRun(row) : null
 }
 
-export function createCompanyResearchRun(companyId: string): string {
+export function createCompanyResearchRun(companyId: string, profileId: string = 'default'): string {
   const id = randomUUID()
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
-    INSERT INTO company_research_runs (id, company_id, started_at, status, created_at)
-    VALUES (?, ?, ?, 'running', ?)
+    INSERT INTO company_research_runs (id, company_id, profile_id, started_at, status, created_at)
+    VALUES (?, ?, ?, ?, 'running', ?)
   `)
-  stmt.run(id, companyId, now, now)
+  stmt.run(id, companyId, profileId, now, now)
 
   // Update company status
   db.prepare('UPDATE companies SET research_status = ? WHERE id = ?').run('running', companyId)
@@ -368,14 +370,14 @@ export function getCompanyResearchRuns(companyId: string): CompanyResearchRun[] 
 // Company Signal Queries
 // ============================================
 
-export function createCompanySignal(signal: Omit<CompanySignal, 'createdAt'>): CompanySignal {
+export function createCompanySignal(signal: Omit<CompanySignal, 'createdAt'>, profileId: string = 'default'): CompanySignal {
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
     INSERT INTO company_signals (
       id, company_id, research_run_id, category, content, source,
-      source_url, confidence, signal_date, raw_snippet, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      source_url, confidence, signal_date, raw_snippet, profile_id, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -389,6 +391,7 @@ export function createCompanySignal(signal: Omit<CompanySignal, 'createdAt'>): C
     signal.confidence,
     signal.signalDate ? Math.floor(signal.signalDate.getTime() / 1000) : null,
     signal.rawSnippet,
+    profileId,
     now
   )
 
@@ -412,28 +415,28 @@ export function getCompanySignals(companyId: string, category?: SignalCategory):
   return rows.map(rowToCompanySignal)
 }
 
-export function saveCompanySignals(companyId: string, researchRunId: string, signals: Omit<CompanySignal, 'id' | 'companyId' | 'researchRunId' | 'createdAt'>[]): CompanySignal[] {
+export function saveCompanySignals(companyId: string, researchRunId: string, signals: Omit<CompanySignal, 'id' | 'companyId' | 'researchRunId' | 'createdAt'>[], profileId: string = 'default'): CompanySignal[] {
   return signals.map(signal => createCompanySignal({
     id: randomUUID(),
     companyId,
     researchRunId,
     ...signal
-  }))
+  }, profileId))
 }
 
 // ============================================
 // Contact Queries
 // ============================================
 
-export function createContact(contact: Omit<Contact, 'createdAt' | 'updatedAt'>): Contact {
+export function createContact(contact: Omit<Contact, 'createdAt' | 'updatedAt'>, profileId: string = 'default'): Contact {
   const now = Math.floor(Date.now() / 1000)
 
   const stmt = db.prepare(`
     INSERT INTO contacts (
       id, company_id, research_run_id, name, title, contact_type,
       linkedin_url, email, source, relevance_score, notes,
-      outreach_status, last_contacted_at, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      outreach_status, last_contacted_at, profile_id, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -450,6 +453,7 @@ export function createContact(contact: Omit<Contact, 'createdAt' | 'updatedAt'>)
     contact.notes,
     contact.outreachStatus,
     contact.lastContactedAt ? Math.floor(contact.lastContactedAt.getTime() / 1000) : null,
+    profileId,
     now,
     now
   )
@@ -512,21 +516,21 @@ export function updateContact(
   return row ? rowToContact(row) : null
 }
 
-export function saveContacts(companyId: string, researchRunId: string, contacts: Omit<Contact, 'id' | 'companyId' | 'researchRunId' | 'createdAt' | 'updatedAt'>[]): Contact[] {
+export function saveContacts(companyId: string, researchRunId: string, contacts: Omit<Contact, 'id' | 'companyId' | 'researchRunId' | 'createdAt' | 'updatedAt'>[], profileId: string = 'default'): Contact[] {
   const savedContacts: Contact[] = []
 
   for (const contact of contacts) {
-    // Try to find existing contact by LinkedIn URL or name+title
+    // Try to find existing contact by LinkedIn URL or name+title (within same profile)
     let existingContact: ContactRow | undefined
 
     if (contact.linkedinUrl) {
-      const stmt = db.prepare('SELECT * FROM contacts WHERE company_id = ? AND linkedin_url = ?')
-      existingContact = stmt.get(companyId, contact.linkedinUrl) as ContactRow | undefined
+      const stmt = db.prepare('SELECT * FROM contacts WHERE company_id = ? AND linkedin_url = ? AND profile_id = ?')
+      existingContact = stmt.get(companyId, contact.linkedinUrl, profileId) as ContactRow | undefined
     }
 
     if (!existingContact) {
-      const stmt = db.prepare('SELECT * FROM contacts WHERE company_id = ? AND name = ? AND title = ?')
-      existingContact = stmt.get(companyId, contact.name, contact.title) as ContactRow | undefined
+      const stmt = db.prepare('SELECT * FROM contacts WHERE company_id = ? AND name = ? AND title = ? AND profile_id = ?')
+      existingContact = stmt.get(companyId, contact.name, contact.title, profileId) as ContactRow | undefined
     }
 
     if (existingContact) {
@@ -563,7 +567,7 @@ export function saveContacts(companyId: string, researchRunId: string, contacts:
         companyId,
         researchRunId,
         ...contact
-      })
+      }, profileId)
       savedContacts.push(newContact)
     }
   }
