@@ -106,20 +106,20 @@ export default function CompanyDiscoveryDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Company Discovery</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Company Discovery</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Turn company signals into actionable insights
             </p>
           </div>
           <button
             onClick={startDiscovery}
             disabled={starting || profileLoading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             {starting ? (
               <>
@@ -156,26 +156,26 @@ export default function CompanyDiscoveryDashboard() {
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-4xl font-bold text-blue-600">{data?.stats.totalCompanies || 0}</div>
-                <div className="text-gray-600">Total Companies</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600">{data?.stats.totalCompanies || 0}</div>
+                <div className="text-gray-600 text-sm sm:text-base">Total Companies</div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-4xl font-bold text-green-600">{data?.stats.totalResearched || 0}</div>
-                <div className="text-gray-600">Fully Researched</div>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div className="text-3xl sm:text-4xl font-bold text-green-600">{data?.stats.totalResearched || 0}</div>
+                <div className="text-gray-600 text-sm sm:text-base">Fully Researched</div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-4xl font-bold text-purple-600">{data?.stats.totalDiscoveryRuns || 0}</div>
-                <div className="text-gray-600">Discovery Runs</div>
+              <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <div className="text-3xl sm:text-4xl font-bold text-purple-600">{data?.stats.totalDiscoveryRuns || 0}</div>
+                <div className="text-gray-600 text-sm sm:text-base">Discovery Runs</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
               {/* Recent Discovery Runs */}
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-800">Recent Discoveries</h2>
+                <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-800">Recent Discoveries</h2>
                 </div>
                 {data?.recentRuns.length === 0 ? (
                   <div className="p-8 text-center text-gray-500">
@@ -210,8 +210,8 @@ export default function CompanyDiscoveryDashboard() {
 
               {/* Top Companies */}
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-800">Top Researched Companies</h2>
+                <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-800">Top Researched Companies</h2>
                   <Link href="/companies" className="text-blue-600 hover:text-blue-800 text-sm">
                     View all →
                   </Link>
@@ -247,9 +247,9 @@ export default function CompanyDiscoveryDashboard() {
             </div>
 
             {/* How it Works */}
-            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="mt-6 sm:mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
               <h3 className="font-semibold text-blue-900 mb-3">How It Works</h3>
-              <div className="grid grid-cols-3 gap-6 text-sm text-blue-800">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-sm text-blue-800">
                 <div>
                   <div className="font-medium mb-1">1. Discover</div>
                   <p>AI searches funding news, tech blogs, and industry sources based on your criteria.</p>
