@@ -1,8 +1,7 @@
 #!/usr/bin/env tsx
 // Database initialization script for Railway deployment
-import { getProfile, getAgentConfig } from './queries'
+import { getProfile } from './queries'
 import { defaultProfile } from '@/config/default-profile'
-import { defaultAgentConfig } from '@/config/default-agent-config'
 
 // Import migration and seed scripts
 import './migrations'
@@ -22,16 +21,6 @@ async function init() {
       console.log('✓ Default profile created')
     } else {
       console.log('✓ Profile already exists')
-    }
-
-    // Check if agent config exists, if not create it
-    const agentConfig = getAgentConfig()
-    if (!agentConfig) {
-      const { updateAgentConfig } = await import('./queries')
-      updateAgentConfig(defaultAgentConfig)
-      console.log('✓ Default agent config created')
-    } else {
-      console.log('✓ Agent config already exists')
     }
 
     console.log('Database initialization complete!')

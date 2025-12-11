@@ -113,7 +113,7 @@ export default function CompanyDiscoveryDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Company Discovery</h1>
             <p className="text-gray-600 mt-1">
-              Find companies matching your profile before job postings go public
+              Turn company signals into actionable insights
             </p>
           </div>
           <button
@@ -248,19 +248,19 @@ export default function CompanyDiscoveryDashboard() {
 
             {/* How it Works */}
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-3">How Company Discovery Works</h3>
+              <h3 className="font-semibold text-blue-900 mb-3">How It Works</h3>
               <div className="grid grid-cols-3 gap-6 text-sm text-blue-800">
                 <div>
-                  <div className="font-medium mb-1">1. Find Companies</div>
-                  <p>Searches funding news, tech blogs, and industry sources based on your profile preferences.</p>
+                  <div className="font-medium mb-1">1. Discover</div>
+                  <p>AI searches funding news, tech blogs, and industry sources based on your criteria.</p>
                 </div>
                 <div>
-                  <div className="font-medium mb-1">2. Research Signals</div>
-                  <p>Gathers 5 signal types: funding, culture, tech stack, leadership changes, and job openings.</p>
+                  <div className="font-medium mb-1">2. Research</div>
+                  <p>Gathers 5 signal types: funding, culture, tech stack, leadership, and hiring activity.</p>
                 </div>
                 <div>
-                  <div className="font-medium mb-1">3. Rank & Connect</div>
-                  <p>Scores companies on fit and discovers key contacts for networking outreach.</p>
+                  <div className="font-medium mb-1">3. Connect</div>
+                  <p>Scores companies on fit and identifies key contacts for strategic outreach.</p>
                 </div>
               </div>
             </div>

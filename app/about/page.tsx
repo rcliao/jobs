@@ -1,29 +1,74 @@
+import Link from 'next/link'
+
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <a href="/" className="text-blue-600 hover:text-blue-800 underline">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 underline">
             ← Back to Dashboard
-          </a>
+          </Link>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About JobScout</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">About 🔦 Beacon</h1>
           <p className="text-xl text-gray-600 mb-8">
-            AI-powered job search automation that saves you hours of manual searching
+            Turn company signals into actionable insights
           </p>
 
           {/* The Problem */}
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-3">The Problem</h2>
             <p className="text-gray-700 mb-3">
-              Job seekers spend 1-2 hours daily manually searching job boards with the same criteria.
-              Most tools don't proactively search multiple sources, rank results by relevance, or efficiently track status.
+              Finding the right companies is hard. Whether you&apos;re looking for your next role, building
+              your professional network, sourcing candidates, or identifying business opportunities -
+              the challenge is the same: there are millions of companies, and you need to find the ones
+              that matter to you.
+            </p>
+            <p className="text-gray-700 mb-3">
+              Traditional approaches are reactive. You wait for opportunities to surface, manually
+              research companies one-by-one, or rely on incomplete data. By the time you find a
+              relevant company, the moment may have passed.
             </p>
             <p className="text-gray-700">
-              <strong>JobScout turns 2 hours of daily searching into 10 minutes of reviewing pre-filtered leads.</strong>
+              <strong>Beacon flips this: define what you&apos;re looking for, then let AI discover and
+              deeply research companies that match - surfacing the signals that matter.</strong>
             </p>
+          </section>
+
+          {/* Use Cases */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Who Uses Beacon</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Job Seekers</h3>
+                <p className="text-gray-700 text-sm">
+                  Find companies that match your skills and preferences before they post jobs.
+                  Get ahead of the competition with proactive outreach.
+                </p>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Networkers</h3>
+                <p className="text-gray-700 text-sm">
+                  Discover companies and contacts aligned with your career interests. Build
+                  relationships strategically, not randomly.
+                </p>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Recruiters</h3>
+                <p className="text-gray-700 text-sm">
+                  Find companies actively hiring for roles you can fill. Identify growth signals
+                  that indicate upcoming talent needs.
+                </p>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Sales & BD</h3>
+                <p className="text-gray-700 text-sm">
+                  Discover companies matching your ideal customer profile. Research their tech stack,
+                  growth stage, and key decision makers.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* How It Works */}
@@ -32,62 +77,64 @@ export default function AboutPage() {
 
             <div className="space-y-6">
               <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Configure Your Profile</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Define Your Criteria</h3>
                 <p className="text-gray-700">
-                  Tell JobScout about your target role, technical skills, preferred company stage,
-                  location preferences, compensation requirements, and keywords to avoid. Customize
-                  the AI agent's search strategy to match your unique needs.
+                  Tell Beacon what you&apos;re looking for: industries, company stages (startup to enterprise),
+                  technologies, locations, and keywords to include or avoid. Your criteria become the
+                  lens through which companies are discovered and evaluated.
                 </p>
               </div>
 
               <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">2. AI Generates Smart Queries</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">2. AI Discovers Companies</h3>
                 <p className="text-gray-700 mb-2">
-                  When you click "Run Search", JobScout uses Gemini AI to generate 5-7 optimized
-                  Google Custom Search queries based on your profile. The AI combines:
+                  Beacon&apos;s AI agents search across multiple sources to find companies matching your criteria:
                 </p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Job board targeting (Greenhouse, Lever, Ashby, etc.)</li>
-                  <li>Role-specific keywords from your seniority level</li>
-                  <li>Your primary technical skills</li>
-                  <li>Company stage and industry signals</li>
-                  <li>Location preferences</li>
-                  <li>Exclusion of unwanted keywords</li>
+                  <li>Tech news and funding announcements</li>
+                  <li>Industry publications and blogs</li>
+                  <li>Company directories and databases</li>
+                  <li>Engineering blogs and tech stack mentions</li>
                 </ul>
               </div>
 
               <div className="border-l-4 border-purple-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Parallel Search Execution</h3>
-                <p className="text-gray-700">
-                  All queries run simultaneously via Google Custom Search API. Results are fetched
-                  from job application platforms (up to 10 per query), then automatically deduplicated
-                  by URL to remove redundant postings.
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Deep Signal Research</h3>
+                <p className="text-gray-700 mb-2">
+                  Each discovered company is researched across five signal categories:
                 </p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li><strong>Growth & Funding:</strong> Recent raises, expansion plans, investor backing</li>
+                  <li><strong>Culture & Work Style:</strong> Remote policies, team dynamics, values</li>
+                  <li><strong>Tech Stack:</strong> Languages, frameworks, infrastructure, engineering practices</li>
+                  <li><strong>Leadership:</strong> Recent hires, team changes, org structure</li>
+                  <li><strong>Hiring Activity:</strong> Current openings as signals of growth areas</li>
+                </ul>
               </div>
 
               <div className="border-l-4 border-yellow-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">4. AI-Powered Scoring</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">4. Fit Scoring & Insights</h3>
                 <p className="text-gray-700 mb-2">
-                  Each unique job is scored 1-10 by Gemini AI based on how well it matches your profile:
+                  Each company receives a fit score (1-10) based on how well it matches your criteria:
                 </p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li><strong>10:</strong> Perfect match - ideal role, company, tech stack, location</li>
-                  <li><strong>8-9:</strong> Strong match - most criteria aligned</li>
-                  <li><strong>6-7:</strong> Good match - worth reviewing</li>
-                  <li><strong>4-5:</strong> Possible match - some fit</li>
-                  <li><strong>1-3:</strong> Poor match - misaligned or contains excluded keywords</li>
+                  <li><strong>8-10:</strong> Strong match - highly aligned with your criteria</li>
+                  <li><strong>6-7:</strong> Good potential - worth exploring further</li>
+                  <li><strong>4-5:</strong> Partial match - some alignment but gaps exist</li>
+                  <li><strong>1-3:</strong> Low fit - significant misalignment</li>
                 </ul>
                 <p className="text-gray-700 mt-2">
-                  The AI also provides 2-3 sentences explaining <em>why</em> each job received its score.
+                  The AI provides detailed reasoning explaining <em>why</em> each company scored as it did,
+                  helping you prioritize your time on the highest-value opportunities.
                 </p>
               </div>
 
               <div className="border-l-4 border-red-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">5. Review & Track</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">5. Contact Discovery</h3>
                 <p className="text-gray-700">
-                  Jobs are displayed sorted by score (highest first). You can filter by status,
-                  read AI reasoning, visit job postings, save promising opportunities, mark applications,
-                  add notes, and dismiss irrelevant listings.
+                  For each company, Beacon identifies key contacts - founders, executives, team leads,
+                  and other relevant people. Use these to reach out strategically with context about
+                  what the company is doing and why you&apos;re interested.
                 </p>
               </div>
             </div>
@@ -95,27 +142,26 @@ export default function AboutPage() {
 
           {/* Visual Flow */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">The Complete Flow</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">The Discovery Flow</h2>
             <div className="bg-gray-100 rounded-lg p-6 font-mono text-sm">
               <div className="space-y-2 text-gray-700">
-                <div>👤 You click "Run Search"</div>
+                <div>Define your search criteria</div>
                 <div className="pl-6">↓</div>
-                <div>🤖 AI generates 5-7 optimized search queries</div>
+                <div>AI generates targeted search queries</div>
                 <div className="pl-6">↓</div>
-                <div>🔍 Google searches multiple job boards in parallel</div>
+                <div>Searches news, blogs, and company sources</div>
                 <div className="pl-6">↓</div>
-                <div>🧹 Deduplicates results by URL</div>
+                <div>Discovers and deduplicates companies</div>
                 <div className="pl-6">↓</div>
-                <div>⭐ AI scores each job 1-10 with reasoning</div>
+                <div>Researches each company across 5 signal categories</div>
                 <div className="pl-6">↓</div>
-                <div>💾 Saves jobs to database</div>
+                <div>Scores fit and surfaces key insights</div>
                 <div className="pl-6">↓</div>
-                <div>📊 Displays ranked results for your review</div>
+                <div>Identifies relevant contacts</div>
+                <div className="pl-6">↓</div>
+                <div>Presents ranked results with actionable intelligence</div>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mt-3">
-              <strong>Time to complete:</strong> 30-60 seconds
-            </p>
           </section>
 
           {/* Key Features */}
@@ -123,27 +169,27 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Key Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">🤖 AI-Powered</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Proactive Discovery</h3>
                 <p className="text-gray-700 text-sm">
-                  Uses Google Gemini to generate queries and intelligently score matches
+                  Find relevant companies automatically instead of searching one by one
                 </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">🎯 Highly Customizable</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Multi-Signal Research</h3>
                 <p className="text-gray-700 text-sm">
-                  Configure your profile and even edit the AI's system prompt
+                  Deep analysis across funding, culture, tech stack, leadership, and hiring activity
                 </p>
               </div>
               <div className="bg-purple-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">⚡ Fast & Parallel</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Intelligent Scoring</h3>
                 <p className="text-gray-700 text-sm">
-                  Executes multiple searches simultaneously for maximum coverage
+                  AI-powered matching that explains why each company does or doesn&apos;t fit
                 </p>
               </div>
               <div className="bg-yellow-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">📊 Smart Tracking</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Contact Intelligence</h3>
                 <p className="text-gray-700 text-sm">
-                  Track jobs through New → Saved → Applied → Dismissed
+                  Identifies key people at each company for strategic outreach
                 </p>
               </div>
             </div>
@@ -157,7 +203,7 @@ export default function AboutPage() {
                 <strong>Frontend:</strong> Next.js 14
               </div>
               <div className="bg-gray-100 rounded px-3 py-2 text-gray-700">
-                <strong>Backend:</strong> Server Components
+                <strong>Orchestration:</strong> LangGraph
               </div>
               <div className="bg-gray-100 rounded px-3 py-2 text-gray-700">
                 <strong>Database:</strong> SQLite
@@ -180,14 +226,14 @@ export default function AboutPage() {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h3 className="font-semibold text-green-900 mb-2">Free Tier</h3>
               <ul className="text-green-800 text-sm space-y-1">
-                <li>• <strong>Gemini AI:</strong> Generous free tier (60 requests/minute)</li>
-                <li>• <strong>Google Custom Search:</strong> 100 queries/day free</li>
-                <li>• <strong>Railway Hosting:</strong> $5 credit/month (enough for personal use)</li>
+                <li><strong>Gemini AI:</strong> Generous free tier (60 requests/minute)</li>
+                <li><strong>Google Custom Search:</strong> 100 queries/day free</li>
+                <li><strong>Self-hosted:</strong> Run locally or deploy to any platform</li>
               </ul>
             </div>
             <p className="text-gray-600 text-sm mt-3">
-              With free tiers, you can run <strong>10-15 searches per day at no cost</strong>.
-              Each search uses ~7 API calls (1 for query generation + 6 for batch scoring).
+              With free tiers, you can run <strong>several discovery sessions per day</strong> at no cost.
+              Each session discovers and researches multiple companies.
             </p>
           </section>
 
@@ -196,31 +242,32 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">FAQ</h2>
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">How often should I run searches?</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">What makes this different from LinkedIn or Crunchbase?</h3>
                 <p className="text-gray-700 text-sm">
-                  Run daily or every few days to catch new postings. The system deduplicates by URL,
-                  so you won't see the same job twice.
+                  Those platforms require you to search manually and evaluate companies one by one.
+                  Beacon proactively discovers companies matching your criteria and researches them
+                  automatically, surfacing the signals that matter most.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Can I customize the AI's search strategy?</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">What signals does it research?</h3>
                 <p className="text-gray-700 text-sm">
-                  Yes! Visit the Configuration page and edit the "System Prompt" to change how the AI
-                  generates queries and scores jobs.
+                  Five categories: Growth & Funding, Culture & Work Style, Tech Stack & Engineering,
+                  Leadership Changes, and Hiring Activity.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">What job boards does it search?</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">How often should I run discovery?</h3>
                 <p className="text-gray-700 text-sm">
-                  By default: Greenhouse, Lever, Ashby, Workable, and other ATS platforms. You can
-                  customize this in the agent configuration.
+                  Weekly or bi-weekly is ideal. The landscape changes as companies raise funding,
+                  expand teams, or shift priorities. Regular discovery keeps your pipeline fresh.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Is my data private?</h3>
                 <p className="text-gray-700 text-sm">
-                  Yes. All data is stored in your own SQLite database on Railway. Profile data is only
-                  sent to Google APIs for search and scoring.
+                  Yes. All data is stored locally in SQLite. Your criteria are only sent to Google APIs
+                  for search and AI analysis - nothing is shared elsewhere.
                 </p>
               </div>
             </div>
@@ -228,12 +275,12 @@ export default function AboutPage() {
 
           {/* CTA */}
           <div className="mt-8 pt-8 border-t text-center">
-            <a
+            <Link
               href="/"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 font-medium"
             >
-              Start Finding Jobs →
-            </a>
+              Start Discovering Companies →
+            </Link>
           </div>
         </div>
       </div>

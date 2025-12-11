@@ -8,6 +8,44 @@ function columnExists(db: ReturnType<typeof getDb>, tableName: string, columnNam
   return result.some(col => col.name === columnName)
 }
 
+// Migration: Rename candidate_fit_analyses table and columns for generic branding
+function migrateGenericProfile(db: ReturnType<typeof getDb>) {
+  console.log('Running migration: generic profile rebrand...')
+
+  // Check if old table exists
+  const tableExists = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='candidate_fit_analyses'"
+  ).get()
+
+  if (tableExists) {
+    // Check if new table already exists
+    const newTableExists = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='company_fit_analyses'"
+    ).get()
+
+    if (!newTableExists) {
+      console.log('  Renaming candidate_fit_analyses to company_fit_analyses...')
+      db.exec('ALTER TABLE candidate_fit_analyses RENAME TO company_fit_analyses')
+
+      // Rename columns (SQLite 3.25+)
+      console.log('  Renaming score columns...')
+      db.exec('ALTER TABLE company_fit_analyses RENAME COLUMN skill_match_score TO criteria_match_score')
+      db.exec('ALTER TABLE company_fit_analyses RENAME COLUMN career_growth_score TO opportunity_score')
+      db.exec('ALTER TABLE company_fit_analyses RENAME COLUMN skills_match_analysis TO criteria_match_analysis')
+
+      // Recreate indexes with new names
+      db.exec('DROP INDEX IF EXISTS idx_fit_analyses_company')
+      db.exec('DROP INDEX IF EXISTS idx_fit_analyses_discovery')
+      db.exec('DROP INDEX IF EXISTS idx_fit_analyses_score')
+      db.exec('CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_company ON company_fit_analyses(company_id);')
+      db.exec('CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_discovery ON company_fit_analyses(discovery_run_id);')
+      db.exec('CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_score ON company_fit_analyses(overall_fit_score DESC);')
+    }
+  }
+
+  console.log('✓ Generic profile migration complete')
+}
+
 // Migration: Add profile_id to tables for multi-profile support
 function migrateAddProfileId(db: ReturnType<typeof getDb>) {
   console.log('Running migration: add profile_id columns...')
@@ -72,6 +110,9 @@ async function runMigrations() {
 
     // Run profile_id migration
     migrateAddProfileId(db)
+
+    // Run generic profile migration
+    migrateGenericProfile(db)
 
     console.log('Database migration complete!')
   } catch (error) {

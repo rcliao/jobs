@@ -213,18 +213,18 @@ CREATE TABLE IF NOT EXISTS company_discovery_runs (
 );
 `
 
-export const CANDIDATE_FIT_ANALYSES_TABLE = `
-CREATE TABLE IF NOT EXISTS candidate_fit_analyses (
+export const COMPANY_FIT_ANALYSES_TABLE = `
+CREATE TABLE IF NOT EXISTS company_fit_analyses (
   id TEXT PRIMARY KEY,
   company_id TEXT NOT NULL,
   discovery_run_id TEXT NOT NULL,
   profile_id TEXT NOT NULL,
-  skill_match_score INTEGER NOT NULL,
+  criteria_match_score INTEGER NOT NULL,
   culture_match_score INTEGER NOT NULL,
-  career_growth_score INTEGER NOT NULL,
+  opportunity_score INTEGER NOT NULL,
   location_match_score INTEGER NOT NULL,
   overall_fit_score INTEGER NOT NULL,
-  skills_match_analysis TEXT NOT NULL,
+  criteria_match_analysis TEXT NOT NULL,
   positioning_strategy TEXT NOT NULL,
   prioritized_contacts TEXT NOT NULL DEFAULT '[]',
   outreach_template TEXT,
@@ -252,9 +252,9 @@ CREATE TABLE IF NOT EXISTS discovery_company_links (
 export const COMPANY_DISCOVERY_INDEXES = [
   'CREATE INDEX IF NOT EXISTS idx_discovery_runs_profile ON company_discovery_runs(profile_id);',
   'CREATE INDEX IF NOT EXISTS idx_discovery_runs_status ON company_discovery_runs(status);',
-  'CREATE INDEX IF NOT EXISTS idx_fit_analyses_company ON candidate_fit_analyses(company_id);',
-  'CREATE INDEX IF NOT EXISTS idx_fit_analyses_discovery ON candidate_fit_analyses(discovery_run_id);',
-  'CREATE INDEX IF NOT EXISTS idx_fit_analyses_score ON candidate_fit_analyses(overall_fit_score DESC);',
+  'CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_company ON company_fit_analyses(company_id);',
+  'CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_discovery ON company_fit_analyses(discovery_run_id);',
+  'CREATE INDEX IF NOT EXISTS idx_company_fit_analyses_score ON company_fit_analyses(overall_fit_score DESC);',
   'CREATE INDEX IF NOT EXISTS idx_discovery_links_discovery ON discovery_company_links(discovery_run_id);',
   'CREATE INDEX IF NOT EXISTS idx_discovery_links_company ON discovery_company_links(company_id);'
 ]
@@ -271,7 +271,7 @@ export const ALL_TABLES = [
   COMPANY_JOB_LINKS_TABLE,
   RESEARCH_AGENT_CONFIGS_TABLE,
   COMPANY_DISCOVERY_RUNS_TABLE,
-  CANDIDATE_FIT_ANALYSES_TABLE,
+  COMPANY_FIT_ANALYSES_TABLE,
   DISCOVERY_COMPANY_LINKS_TABLE
 ]
 

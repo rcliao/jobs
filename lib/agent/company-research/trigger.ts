@@ -1,9 +1,7 @@
 import { HumanMessage } from '@langchain/core/messages'
 import { companyResearchGraph } from './graph'
-import { CompanyResearchState } from './state'
 import {
   getOrCreateCompany,
-  getCompanyByName,
   createCompanyResearchRun,
   getCompaniesNeedingResearch
 } from '@/lib/db/company-queries'
@@ -85,59 +83,6 @@ export async function triggerCompanyResearch(companyName: string, profileId: str
       errors: [String(error)]
     }
   }
-}
-
-/**
- * Normalize company name for consistent matching
- */
-function normalizeCompanyName(name: string): string {
-  return name
-    .replace(/\.(com|org|net|io|co|ai)$/i, '')
-    .replace(/,?\s*(Inc\.?|LLC|Ltd\.?|Corp\.?|Corporation|Company|Co\.?)$/i, '')
-    .trim()
-}
-
-/**
- * Queue companies from job search results for research
- * Only queues companies that haven't been researched recently
- */
-export async function queueCompaniesFromJobs(
-  jobs: { company: string }[],
-  options: { maxResearchAge?: number; profileId?: string } = {}
-): Promise<{ queued: string[]; skipped: string[] }> {
-  const { maxResearchAge = 30, profileId = 'default' } = options // Days
-
-  const uniqueCompanies = [...new Set(jobs.map(j => normalizeCompanyName(j.company)))]
-  const queued: string[] = []
-  const skipped: string[] = []
-
-  const maxAgeMs = maxResearchAge * 24 * 60 * 60 * 1000
-
-  for (const companyName of uniqueCompanies) {
-    if (!companyName || companyName.length < 2) {
-      continue
-    }
-
-    // Check if already researched recently (within this profile)
-    const existing = getCompanyByName(companyName, profileId)
-
-    if (existing?.lastResearchedAt) {
-      const age = Date.now() - existing.lastResearchedAt.getTime()
-      if (age < maxAgeMs) {
-        skipped.push(companyName)
-        continue
-      }
-    }
-
-    // Queue for research (don't await - fire and forget)
-    queued.push(companyName)
-    triggerCompanyResearch(companyName, profileId).catch(err => {
-      console.error(`Background research failed for ${companyName}:`, err)
-    })
-  }
-
-  console.log(`Queued ${queued.length} companies for research, skipped ${skipped.length}`)
-  return { queued, skipped }
 }
 
 /**

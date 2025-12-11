@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JobScout - AI Job Search",
-  description: "AI-powered job search that automatically finds, scores, and ranks opportunities based on your preferences",
+  title: "🔦 Beacon - Company Intelligence",
+  description: "Turn company signals into actionable insights. AI-powered discovery and deep research on funding, culture, tech stack, leadership, and key contacts.",
 };
 
 export default function RootLayout({

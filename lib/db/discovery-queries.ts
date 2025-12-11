@@ -2,8 +2,8 @@ import { getDb } from './client'
 import type {
   CompanyDiscoveryRun,
   CompanyDiscoveryRunRow,
-  CandidateFitAnalysis,
-  CandidateFitAnalysisRow,
+  CompanyFitAnalysis,
+  CompanyFitAnalysisRow,
   DiscoveryCompanyLink,
   DiscoveryCompanyLinkRow,
   DiscoveryStatus
@@ -28,18 +28,18 @@ function rowToDiscoveryRun(row: CompanyDiscoveryRunRow): CompanyDiscoveryRun {
   }
 }
 
-function rowToFitAnalysis(row: CandidateFitAnalysisRow): CandidateFitAnalysis {
+function rowToFitAnalysis(row: CompanyFitAnalysisRow): CompanyFitAnalysis {
   return {
     id: row.id,
     companyId: row.company_id,
     discoveryRunId: row.discovery_run_id,
     profileId: row.profile_id,
-    skillMatchScore: row.skill_match_score,
+    criteriaMatchScore: row.criteria_match_score,
     cultureMatchScore: row.culture_match_score,
-    careerGrowthScore: row.career_growth_score,
+    opportunityScore: row.opportunity_score,
     locationMatchScore: row.location_match_score,
     overallFitScore: row.overall_fit_score,
-    skillsMatchAnalysis: row.skills_match_analysis,
+    criteriaMatchAnalysis: row.criteria_match_analysis,
     positioningStrategy: row.positioning_strategy,
     prioritizedContacts: JSON.parse(row.prioritized_contacts),
     outreachTemplate: row.outreach_template,
@@ -167,22 +167,22 @@ export function incrementDiscoveryCount(
 }
 
 // ============================================
-// Candidate Fit Analysis Queries
+// Company Fit Analysis Queries
 // ============================================
 
 export function createFitAnalysis(
-  analysis: Omit<CandidateFitAnalysis, 'id' | 'createdAt'>
-): CandidateFitAnalysis {
+  analysis: Omit<CompanyFitAnalysis, 'id' | 'createdAt'>
+): CompanyFitAnalysis {
   const db = getDb()
   const id = crypto.randomUUID()
   const now = Date.now()
 
   db.prepare(`
-    INSERT INTO candidate_fit_analyses (
+    INSERT INTO company_fit_analyses (
       id, company_id, discovery_run_id, profile_id,
-      skill_match_score, culture_match_score, career_growth_score,
+      criteria_match_score, culture_match_score, opportunity_score,
       location_match_score, overall_fit_score,
-      skills_match_analysis, positioning_strategy,
+      criteria_match_analysis, positioning_strategy,
       prioritized_contacts, outreach_template, created_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
@@ -190,12 +190,12 @@ export function createFitAnalysis(
     analysis.companyId,
     analysis.discoveryRunId,
     analysis.profileId,
-    analysis.skillMatchScore,
+    analysis.criteriaMatchScore,
     analysis.cultureMatchScore,
-    analysis.careerGrowthScore,
+    analysis.opportunityScore,
     analysis.locationMatchScore,
     analysis.overallFitScore,
-    analysis.skillsMatchAnalysis,
+    analysis.criteriaMatchAnalysis,
     analysis.positioningStrategy,
     JSON.stringify(analysis.prioritizedContacts),
     analysis.outreachTemplate,
@@ -205,11 +205,11 @@ export function createFitAnalysis(
   return getFitAnalysis(id)!
 }
 
-export function getFitAnalysis(id: string): CandidateFitAnalysis | null {
+export function getFitAnalysis(id: string): CompanyFitAnalysis | null {
   const db = getDb()
   const row = db.prepare(`
-    SELECT * FROM candidate_fit_analyses WHERE id = ?
-  `).get(id) as CandidateFitAnalysisRow | undefined
+    SELECT * FROM company_fit_analyses WHERE id = ?
+  `).get(id) as CompanyFitAnalysisRow | undefined
 
   return row ? rowToFitAnalysis(row) : null
 }
@@ -217,23 +217,23 @@ export function getFitAnalysis(id: string): CandidateFitAnalysis | null {
 export function getFitAnalysisByCompany(
   companyId: string,
   discoveryRunId: string
-): CandidateFitAnalysis | null {
+): CompanyFitAnalysis | null {
   const db = getDb()
   const row = db.prepare(`
-    SELECT * FROM candidate_fit_analyses
+    SELECT * FROM company_fit_analyses
     WHERE company_id = ? AND discovery_run_id = ?
-  `).get(companyId, discoveryRunId) as CandidateFitAnalysisRow | undefined
+  `).get(companyId, discoveryRunId) as CompanyFitAnalysisRow | undefined
 
   return row ? rowToFitAnalysis(row) : null
 }
 
-export function getFitAnalysesByRun(discoveryRunId: string): CandidateFitAnalysis[] {
+export function getFitAnalysesByRun(discoveryRunId: string): CompanyFitAnalysis[] {
   const db = getDb()
   const rows = db.prepare(`
-    SELECT * FROM candidate_fit_analyses
+    SELECT * FROM company_fit_analyses
     WHERE discovery_run_id = ?
     ORDER BY overall_fit_score DESC
-  `).all(discoveryRunId) as CandidateFitAnalysisRow[]
+  `).all(discoveryRunId) as CompanyFitAnalysisRow[]
 
   return rows.map(rowToFitAnalysis)
 }

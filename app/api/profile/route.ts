@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest) {
     const data: UpdateProfileRequest = await request.json()
 
     // Basic validation
-    if (!data.targetRole || !data.seniority || !data.technicalSkills) {
+    if (!data.targetRole || !data.technicalSkills) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }

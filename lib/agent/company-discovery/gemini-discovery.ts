@@ -63,29 +63,29 @@ const extractedCompaniesSchema: Schema = {
 const fitAnalysisSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
-    skillMatchScore: {
+    criteriaMatchScore: {
       type: SchemaType.INTEGER,
-      description: 'Score 1-10 for skills match'
+      description: 'Score 1-10 for how well company matches profile criteria (tech stack, skills, industry)'
     },
     cultureMatchScore: {
       type: SchemaType.INTEGER,
-      description: 'Score 1-10 for culture match'
+      description: 'Score 1-10 for culture and work style alignment'
     },
-    careerGrowthScore: {
+    opportunityScore: {
       type: SchemaType.INTEGER,
-      description: 'Score 1-10 for career growth potential'
+      description: 'Score 1-10 for opportunity potential (growth, timing, fit)'
     },
     locationMatchScore: {
       type: SchemaType.INTEGER,
-      description: 'Score 1-10 for location/remote match'
+      description: 'Score 1-10 for location/remote alignment'
     },
-    skillsMatchAnalysis: {
+    criteriaMatchAnalysis: {
       type: SchemaType.STRING,
-      description: 'Analysis of skills alignment and gaps (2-3 sentences)'
+      description: 'Analysis of criteria alignment and gaps (2-3 sentences)'
     },
     positioningStrategy: {
       type: SchemaType.STRING,
-      description: 'How candidate should position themselves (2-3 sentences)'
+      description: 'How to approach this company strategically (2-3 sentences)'
     },
     prioritizedContacts: {
       type: SchemaType.ARRAY,
@@ -94,15 +94,15 @@ const fitAnalysisSchema: Schema = {
     },
     outreachTemplate: {
       type: SchemaType.STRING,
-      description: 'Suggested intro message template for cold outreach'
+      description: 'Suggested intro message template for outreach'
     }
   },
   required: [
-    'skillMatchScore',
+    'criteriaMatchScore',
     'cultureMatchScore',
-    'careerGrowthScore',
+    'opportunityScore',
     'locationMatchScore',
-    'skillsMatchAnalysis',
+    'criteriaMatchAnalysis',
     'positioningStrategy',
     'prioritizedContacts',
     'outreachTemplate'
@@ -124,29 +124,28 @@ export const generateDiscoveryQueries = traceable(async function generateDiscove
     }
   })
 
-  const prompt = `Generate 5-8 specific Google search queries to find companies that match this job seeker's profile.
+  const prompt = `Generate 5-8 specific Google search queries to find companies matching these criteria.
 
-PROFILE:
-- Target Role: ${profile.targetRole}
-- Seniority: ${profile.seniority.join(', ')}
-- Primary Skills: ${profile.technicalSkills.primary.join(', ')}
-- Secondary Skills: ${profile.technicalSkills.secondary.join(', ')}
+DISCOVERY CRITERIA:
+- Focus Area: ${profile.targetRole}
+- Primary Technologies: ${profile.technicalSkills.primary.join(', ')}
+- Secondary Technologies: ${profile.technicalSkills.secondary.join(', ')}
 - Company Stage: ${profile.company.stage.join(', ')}
 - Industries: ${profile.company.industry.join(', ')}
-- Location: ${profile.location.preferences.join(', ')} (Remote OK: ${profile.location.remoteOk})
-- Avoid: ${profile.avoid.join(', ')}
-- Must Have: ${profile.mustHave.join(', ')}
+- Location Preferences: ${profile.location.preferences.join(', ')} (Remote OK: ${profile.location.remoteOk})
+- Exclude Keywords: ${profile.avoid.join(', ')}
+- Required Keywords: ${profile.mustHave.join(', ')}
 
 Generate queries that will find:
 1. Companies in the target industries that recently raised funding
-2. Companies using the candidate's primary tech stack
-3. Companies hiring for similar roles
-4. Growing startups in the target company stage
+2. Companies using the specified tech stack
+3. Growing companies in the target stage
+4. Companies with signals of growth (hiring, funding, expansion)
 
 Query tips:
 - Use site: operators for quality sources (techcrunch.com, crunchbase.com, linkedin.com)
 - Include year for recency (2024 or 2025)
-- Mix funding news, hiring, and tech stack queries
+- Mix funding news, growth signals, and tech stack queries
 - Target the specific industries and company stages`
 
   try {
@@ -274,18 +273,17 @@ export const generateFitAnalysis = traceable(async function generateFitAnalysis(
     ? contacts.map(c => `- ${c.name}: ${c.title} (${c.contactType})`).join('\n')
     : 'No contacts discovered.'
 
-  const prompt = `Analyze how well this candidate matches ${companyName}.
+  const prompt = `Analyze how well ${companyName} matches the discovery criteria.
 
-CANDIDATE PROFILE:
-- Target Role: ${profile.targetRole}
-- Seniority: ${profile.seniority.join(', ')}
-- Primary Skills: ${profile.technicalSkills.primary.join(', ')}
-- Secondary Skills: ${profile.technicalSkills.secondary.join(', ')}
+DISCOVERY CRITERIA:
+- Focus Area: ${profile.targetRole}
+- Primary Technologies: ${profile.technicalSkills.primary.join(', ')}
+- Secondary Technologies: ${profile.technicalSkills.secondary.join(', ')}
 - Preferred Industries: ${profile.company.industry.join(', ')}
 - Preferred Company Stage: ${profile.company.stage.join(', ')}
 - Location Preferences: ${profile.location.preferences.join(', ')} (Remote OK: ${profile.location.remoteOk})
-- Must Have: ${profile.mustHave.join(', ')}
-- Avoid: ${profile.avoid.join(', ')}
+- Required Keywords: ${profile.mustHave.join(', ')}
+- Exclude Keywords: ${profile.avoid.join(', ')}
 
 COMPANY SIGNALS:
 ${signalsText}
@@ -294,16 +292,16 @@ CONTACTS AT COMPANY:
 ${contactsText}
 
 Provide scores 1-10 for each dimension:
-1. skillMatchScore: How well do candidate's skills match company's tech stack and needs?
-2. cultureMatchScore: Based on culture signals, how aligned is the candidate?
-3. careerGrowthScore: Does the company stage/growth offer good career trajectory?
+1. criteriaMatchScore: How well does the company match the specified tech stack, industry, and focus area?
+2. cultureMatchScore: Based on culture signals, how well does this company align with preferences?
+3. opportunityScore: Based on growth signals, timing, and potential - is this a good opportunity?
 4. locationMatchScore: Does the company's location/remote policy match preferences?
 
 Also provide:
-- skillsMatchAnalysis: What skills align well? What gaps exist? (2-3 sentences)
-- positioningStrategy: How should the candidate position themselves? (2-3 sentences)
+- criteriaMatchAnalysis: What criteria align well? What gaps exist? (2-3 sentences)
+- positioningStrategy: How should one approach this company strategically? (2-3 sentences)
 - prioritizedContacts: List contact names in order of who to reach out to first
-- outreachTemplate: A 2-3 sentence intro message template for cold outreach`
+- outreachTemplate: A 2-3 sentence intro message template for outreach`
 
   try {
     const result = await model.generateContent(prompt)
@@ -311,16 +309,16 @@ Also provide:
     const parsed = JSON.parse(text)
 
     // Calculate overall score (weighted average)
-    const skillMatch = Math.min(10, Math.max(1, Number(parsed.skillMatchScore) || 5))
+    const criteriaMatch = Math.min(10, Math.max(1, Number(parsed.criteriaMatchScore) || 5))
     const cultureMatch = Math.min(10, Math.max(1, Number(parsed.cultureMatchScore) || 5))
-    const careerGrowth = Math.min(10, Math.max(1, Number(parsed.careerGrowthScore) || 5))
+    const opportunity = Math.min(10, Math.max(1, Number(parsed.opportunityScore) || 5))
     const locationMatch = Math.min(10, Math.max(1, Number(parsed.locationMatchScore) || 5))
 
-    // Weighted: skill 30%, culture 25%, career 25%, location 20%
+    // Weighted: criteria 30%, culture 25%, opportunity 25%, location 20%
     const overallFitScore = Math.round(
-      skillMatch * 0.30 +
+      criteriaMatch * 0.30 +
       cultureMatch * 0.25 +
-      careerGrowth * 0.25 +
+      opportunity * 0.25 +
       locationMatch * 0.20
     )
 
@@ -335,12 +333,12 @@ Also provide:
     return {
       companyId,
       companyName,
-      skillMatchScore: skillMatch,
+      criteriaMatchScore: criteriaMatch,
       cultureMatchScore: cultureMatch,
-      careerGrowthScore: careerGrowth,
+      opportunityScore: opportunity,
       locationMatchScore: locationMatch,
       overallFitScore,
-      skillsMatchAnalysis: String(parsed.skillsMatchAnalysis || ''),
+      criteriaMatchAnalysis: String(parsed.criteriaMatchAnalysis || ''),
       positioningStrategy: String(parsed.positioningStrategy || ''),
       prioritizedContacts,
       outreachTemplate: parsed.outreachTemplate ? String(parsed.outreachTemplate) : null
@@ -362,13 +360,13 @@ function getDefaultFitAnalysis(
   return {
     companyId,
     companyName,
-    skillMatchScore: 5,
+    criteriaMatchScore: 5,
     cultureMatchScore: 5,
-    careerGrowthScore: 5,
+    opportunityScore: 5,
     locationMatchScore: 5,
     overallFitScore: 5,
-    skillsMatchAnalysis: 'Unable to analyze skills match. Review company signals manually.',
-    positioningStrategy: 'Research the company further to develop a positioning strategy.',
+    criteriaMatchAnalysis: 'Unable to analyze criteria match. Review company signals manually.',
+    positioningStrategy: 'Research the company further to develop a strategy.',
     prioritizedContacts: contacts.slice(0, 3).map(c => c.id),
     outreachTemplate: null
   }

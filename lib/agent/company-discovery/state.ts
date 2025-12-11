@@ -1,6 +1,6 @@
 import { Annotation } from '@langchain/langgraph'
 import { BaseMessage } from '@langchain/core/messages'
-import type { Profile, CandidateFitAnalysis } from '@/types'
+import type { Profile } from '@/types'
 
 // Discovery phase type
 export type DiscoveryPhase =
@@ -29,12 +29,12 @@ export interface DiscoveredCompany {
 export interface FitAnalysisResult {
   companyId: string
   companyName: string
-  skillMatchScore: number
+  criteriaMatchScore: number
   cultureMatchScore: number
-  careerGrowthScore: number
+  opportunityScore: number
   locationMatchScore: number
   overallFitScore: number
-  skillsMatchAnalysis: string
+  criteriaMatchAnalysis: string
   positioningStrategy: string
   prioritizedContacts: string[]
   outreachTemplate: string | null

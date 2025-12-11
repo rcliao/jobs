@@ -1,8 +1,7 @@
 #!/usr/bin/env tsx
-import { getProfile, updateProfile, getAgentConfig, updateAgentConfig } from './queries'
+import { getProfile, updateProfile } from './queries'
 import { getResearchAgentConfig, createOrUpdateResearchAgentConfig } from './company-queries'
 import { defaultProfile } from '@/config/default-profile'
-import { defaultAgentConfig } from '@/config/default-agent-config'
 import { defaultResearchAgentConfigs } from '@/config/default-research-agent-configs'
 
 async function seed() {
@@ -16,15 +15,6 @@ async function seed() {
     } else {
       updateProfile(defaultProfile)
       console.log('✓ Profile created')
-    }
-
-    // Seed agent config
-    const existingConfig = getAgentConfig()
-    if (existingConfig) {
-      console.log('Agent config already exists, skipping...')
-    } else {
-      updateAgentConfig(defaultAgentConfig)
-      console.log('✓ Agent config created')
     }
 
     // Seed research agent configs

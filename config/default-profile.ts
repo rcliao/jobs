@@ -1,8 +1,7 @@
 import type { UpdateProfileRequest } from '@/types'
 
 export const defaultProfile: UpdateProfileRequest = {
-  targetRole: 'Staff Software Engineer',
-  seniority: ['Staff', 'Senior', 'Principal'],
+  targetRole: 'Software Engineering',  // Focus area
   technicalSkills: {
     primary: ['TypeScript', 'Go', 'Distributed Systems'],
     secondary: ['Python', 'Kubernetes', 'PostgreSQL']
@@ -16,12 +15,8 @@ export const defaultProfile: UpdateProfileRequest = {
     preferences: ['Remote', 'SF Bay Area'],
     remoteOk: true
   },
-  compensation: {
-    minimum: 180000,
-    target: 220000
-  },
   avoid: ['blockchain', 'crypto', 'web3', 'consultancy', 'agency'],
-  mustHave: ['remote-friendly', 'equity', 'strong engineering culture'],
-  includedSites: ['greenhouse.io', 'lever.co', 'ashbyhq.com', 'workable.com', 'bamboohr.com'],
+  mustHave: ['remote-friendly', 'strong engineering culture'],
+  includedSites: ['techcrunch.com', 'crunchbase.com'],
   excludedSites: []
 }

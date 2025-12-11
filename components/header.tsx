@@ -7,8 +7,8 @@ import { ProfileSelector } from './profile-selector'
 const navLinks = [
   { href: '/', label: 'Discovery' },
   { href: '/companies', label: 'Companies' },
-  { href: '/jobs', label: 'Jobs' },
   { href: '/config', label: 'Config' },
+  { href: '/about', label: 'About' },
 ]
 
 export function Header() {
@@ -20,7 +20,7 @@ export function Header() {
         <div className="flex justify-between items-center h-14">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-lg font-semibold text-gray-900">
-              JobScout
+              🔦 Beacon
             </Link>
             <nav className="hidden sm:flex items-center gap-1">
               {navLinks.map((link) => {

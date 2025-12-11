@@ -194,10 +194,10 @@ export default function DiscoveryDetailPage({
                   {/* Score Breakdown */}
                   <div className="grid grid-cols-4 gap-4 mb-4">
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.skillMatchScore)}`}>
-                        {result.fitAnalysis.skillMatchScore}
+                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.criteriaMatchScore)}`}>
+                        {result.fitAnalysis.criteriaMatchScore}
                       </div>
-                      <div className="text-xs text-gray-500">Skills</div>
+                      <div className="text-xs text-gray-500">Criteria</div>
                     </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.cultureMatchScore)}`}>
@@ -206,10 +206,10 @@ export default function DiscoveryDetailPage({
                       <div className="text-xs text-gray-500">Culture</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.careerGrowthScore)}`}>
-                        {result.fitAnalysis.careerGrowthScore}
+                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.opportunityScore)}`}>
+                        {result.fitAnalysis.opportunityScore}
                       </div>
-                      <div className="text-xs text-gray-500">Growth</div>
+                      <div className="text-xs text-gray-500">Opportunity</div>
                     </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.locationMatchScore)}`}>
@@ -222,11 +222,11 @@ export default function DiscoveryDetailPage({
                   {/* Analysis Text */}
                   <div className="space-y-3 text-sm">
                     <div>
-                      <span className="font-medium text-gray-700">Skills Match: </span>
-                      <span className="text-gray-600">{result.fitAnalysis.skillsMatchAnalysis}</span>
+                      <span className="font-medium text-gray-700">Criteria Match: </span>
+                      <span className="text-gray-600">{result.fitAnalysis.criteriaMatchAnalysis}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">Positioning Strategy: </span>
+                      <span className="font-medium text-gray-700">Strategy: </span>
                       <span className="text-gray-600">{result.fitAnalysis.positioningStrategy}</span>
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export default function DiscoveryDetailPage({
                           )}
                         </button>
                       </div>
-                      <p className="text-gray-600 text-sm italic">"{result.fitAnalysis.outreachTemplate}"</p>
+                      <p className="text-gray-600 text-sm italic">&quot;{result.fitAnalysis.outreachTemplate}&quot;</p>
                     </div>
                   )}
                 </div>

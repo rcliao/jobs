@@ -16,7 +16,7 @@ interface ProfileContextType {
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
 
-const PROFILE_STORAGE_KEY = 'jobscout_profile_id'
+const PROFILE_STORAGE_KEY = 'beacon_profile_id'
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profileId, setProfileIdState] = useState<string>('default')

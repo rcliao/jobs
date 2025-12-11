@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Job Search Automation - an AI-powered tool that automatically finds, scores, and ranks job postings. Uses Gemini AI for query generation and scoring, Google Custom Search API for job discovery, and SQLite for persistence.
+**Beacon** - Company Intelligence. An AI-powered tool that discovers companies matching your criteria and performs deep research on signals (funding, culture, tech stack, leadership, hiring activity) and key contacts. Uses Gemini AI for discovery and analysis, Google Custom Search API for company discovery, and SQLite for persistence.
+
+Core value prop: "Turn company signals into actionable insights" - useful for job seekers, networkers, recruiters, and sales/BD professionals.
 
 ## Commands
 
@@ -27,8 +29,9 @@ npx tsx lib/utils/text-processing.test.ts
 
 ### Data Flow
 
-1. **Search Execution**: User triggers search → LangGraph workflow → Gemini generates queries → Google CSE executes queries → Gemini scores results → SQLite stores jobs
-2. **Job Management**: Dashboard displays jobs from SQLite → User actions (save/apply/dismiss) update status via Server Actions
+1. **Company Discovery**: User triggers discovery → LangGraph workflow → Gemini generates queries → Google CSE finds companies → Gemini researches signals → SQLite stores companies
+2. **Company Research**: For each company → AI agents gather signals (funding, culture, tech, leadership, hiring) → Identify key contacts → Score fit against profile
+3. **Company Management**: Dashboard displays companies from SQLite → User actions update status via Server Actions
 
 ### Key Components
 
@@ -79,4 +82,4 @@ Required in `.env.local`:
 Optional (for LangSmith tracing):
 - `LANGCHAIN_TRACING_V2=true` - Enable LangSmith tracing
 - `LANGCHAIN_API_KEY` - Your LangSmith API key
-- `LANGCHAIN_PROJECT` - Project name (default: job-search-company-research)
+- `LANGCHAIN_PROJECT` - Project name (default: beacon-company-research)

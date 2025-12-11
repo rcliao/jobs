@@ -36,7 +36,6 @@ export {
 // Triggers
 export {
   triggerCompanyResearch,
-  queueCompaniesFromJobs,
   runScheduledResearch,
   type CompanyResearchResult
 } from './trigger'

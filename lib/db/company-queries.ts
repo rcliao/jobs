@@ -9,8 +9,6 @@ import type {
   CompanySignalRow,
   Contact,
   ContactRow,
-  CompanyJobLink,
-  CompanyJobLinkRow,
   ResearchAgentConfig,
   ResearchAgentConfigRow,
   ResearchAgentType,
@@ -573,32 +571,6 @@ export function saveContacts(companyId: string, researchRunId: string, contacts:
   }
 
   return savedContacts
-}
-
-// ============================================
-// Company-Job Link Queries
-// ============================================
-
-export function linkCompanyToJob(companyId: string, jobId: string, confidence: number = 1.0): void {
-  const now = Math.floor(Date.now() / 1000)
-
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO company_job_links (company_id, job_id, confidence, created_at)
-    VALUES (?, ?, ?, ?)
-  `)
-  stmt.run(companyId, jobId, confidence, now)
-}
-
-export function getCompanyJobs(companyId: string): string[] {
-  const stmt = db.prepare('SELECT job_id FROM company_job_links WHERE company_id = ?')
-  const rows = stmt.all(companyId) as { job_id: string }[]
-  return rows.map(r => r.job_id)
-}
-
-export function getJobCompany(jobId: string): string | null {
-  const stmt = db.prepare('SELECT company_id FROM company_job_links WHERE job_id = ?')
-  const row = stmt.get(jobId) as { company_id: string } | undefined
-  return row ? row.company_id : null
 }
 
 // ============================================
