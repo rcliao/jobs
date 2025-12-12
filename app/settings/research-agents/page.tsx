@@ -115,15 +115,15 @@ export default async function ResearchAgentSettingsPage({
   const selectedConfig = configs.find(c => c.agentType === selectedAgent)!
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
           <div>
             <Link href="/companies" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
               ← Back to Companies
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Research Agent Configuration</h1>
-            <p className="text-gray-600 mt-1">Configure the behavior and prompts for each research agent</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Research Agent Configuration</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Configure the behavior and prompts for each research agent</p>
           </div>
         </div>
 
@@ -145,12 +145,12 @@ export default async function ResearchAgentSettingsPage({
         )}
 
         {/* Agent Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
           {configs.map(config => (
             <Link
               key={config.agentType}
               href={`/settings/research-agents?agent=${config.agentType}`}
-              className={`px-4 py-2 rounded-md font-medium ${
+              className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base whitespace-nowrap ${
                 selectedAgent === config.agentType
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
@@ -163,24 +163,24 @@ export default async function ResearchAgentSettingsPage({
         </div>
 
         {/* Selected Agent Config Form */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-start mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">{getAgentLabel(selectedConfig.agentType)}</h2>
-              <p className="text-gray-600 text-sm mt-1">{getAgentDescription(selectedConfig.agentType as ResearchAgentType)}</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">{getAgentLabel(selectedConfig.agentType)}</h2>
+              <p className="text-gray-600 text-xs sm:text-sm mt-1">{getAgentDescription(selectedConfig.agentType as ResearchAgentType)}</p>
             </div>
             <form action={resetConfigAction}>
               <input type="hidden" name="agentType" value={selectedConfig.agentType} />
               <button
                 type="submit"
-                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 underline"
               >
                 Reset to Defaults
               </button>
             </form>
           </div>
 
-          <form action={updateConfigAction} className="space-y-6" key={selectedConfig.agentType}>
+          <form action={updateConfigAction} className="space-y-4 sm:space-y-6" key={selectedConfig.agentType}>
             <input type="hidden" name="agentType" value={selectedConfig.agentType} />
 
             {/* Enabled Toggle */}
@@ -244,16 +244,16 @@ export default async function ResearchAgentSettingsPage({
             </div>
 
             {/* Submit */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 type="submit"
-                className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium"
+                className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium text-sm sm:text-base w-full sm:w-auto"
               >
                 Save Configuration
               </button>
               <Link
                 href="/companies"
-                className="bg-gray-200 text-gray-700 py-2 px-6 rounded-md hover:bg-gray-300 font-medium"
+                className="bg-gray-200 text-gray-700 py-2 px-6 rounded-md hover:bg-gray-300 font-medium text-center text-sm sm:text-base w-full sm:w-auto"
               >
                 Cancel
               </Link>
@@ -269,25 +269,25 @@ export default async function ResearchAgentSettingsPage({
         </div>
 
         {/* Quick Reference */}
-        <div className="mt-8 bg-gray-100 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-800 mb-3">Configuration Reference</h3>
-          <div className="grid grid-cols-2 gap-6 text-sm">
+        <div className="mt-6 sm:mt-8 bg-gray-100 rounded-lg p-4 sm:p-6">
+          <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Configuration Reference</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-xs sm:text-sm">
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Behavior Config Options</h4>
               <ul className="text-gray-600 space-y-1">
-                <li><code className="bg-gray-200 px-1 rounded">maxIterations</code> - Max search iterations per category (default: 3)</li>
-                <li><code className="bg-gray-200 px-1 rounded">minSignalsRequired</code> - Min signals before moving on (default: 2)</li>
-                <li><code className="bg-gray-200 px-1 rounded">confidenceThreshold</code> - Min confidence to include signal (default: 5)</li>
-                <li><code className="bg-gray-200 px-1 rounded">maxContacts</code> - Max contacts to discover (default: 10)</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">maxIterations</code> - Max search iterations per category (default: 3)</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">minSignalsRequired</code> - Min signals before moving on (default: 2)</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">confidenceThreshold</code> - Min confidence to include signal (default: 5)</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">maxContacts</code> - Max contacts to discover (default: 10)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Tools Config Options</h4>
               <ul className="text-gray-600 space-y-1">
-                <li><code className="bg-gray-200 px-1 rounded">searchSources</code> - Array of sources: google_cse, serper, tavily</li>
-                <li><code className="bg-gray-200 px-1 rounded">enableWebScraping</code> - Allow fetching full page content</li>
-                <li><code className="bg-gray-200 px-1 rounded">enableLinkedIn</code> - Enable LinkedIn-specific queries</li>
-                <li><code className="bg-gray-200 px-1 rounded">customQueryTemplates</code> - Custom search query patterns</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">searchSources</code> - Array of sources: google_cse, serper, tavily</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">enableWebScraping</code> - Allow fetching full page content</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">enableLinkedIn</code> - Enable LinkedIn-specific queries</li>
+                <li><code className="bg-gray-200 px-1 rounded text-xs">customQueryTemplates</code> - Custom search query patterns</li>
               </ul>
             </div>
           </div>

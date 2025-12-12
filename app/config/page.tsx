@@ -89,7 +89,7 @@ function ConfigPageContent() {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
           <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-600">Loading configuration...</p>
@@ -100,9 +100,9 @@ function ConfigPageContent() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Configuration</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Configuration</h1>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-800">Profile not found. Please run database seed.</p>
             <code className="text-sm text-red-600">npm run db:seed</code>
@@ -113,12 +113,12 @@ function ConfigPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Configuration</h1>
-            <p className="text-gray-600 mt-1">Editing profile: <span className="font-medium">{profileId}</span></p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configuration</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Editing profile: <span className="font-medium">{profileId}</span></p>
           </div>
         </div>
 
@@ -135,10 +135,10 @@ function ConfigPageContent() {
         )}
 
         {/* Profile Form */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Discovery Profile</h2>
-          <p className="text-gray-600 text-sm mb-6">Define criteria for discovering and scoring companies</p>
-          <form onSubmit={handleProfileSubmit} className="space-y-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4">Discovery Profile</h2>
+          <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6">Define criteria for discovering and scoring companies</p>
+          <form onSubmit={handleProfileSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="targetRole" className="block text-sm font-medium text-gray-700 mb-1">
                 Focus Area
@@ -155,7 +155,7 @@ function ConfigPageContent() {
               <p className="mt-1 text-xs text-gray-500">The domain or function you&apos;re interested in</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="primarySkills" className="block text-sm font-medium text-gray-700 mb-1">
                   Primary Technologies / Skills
@@ -187,7 +187,7 @@ function ConfigPageContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="companyStage" className="block text-sm font-medium text-gray-700 mb-1">
                   Company Stage
@@ -325,7 +325,7 @@ function ConfigPageContent() {
           </form>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-gray-500">
           Last updated: {profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : 'Unknown'}
         </div>
       </div>
@@ -336,7 +336,7 @@ function ConfigPageContent() {
 export default function ConfigPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center py-12">
             <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />

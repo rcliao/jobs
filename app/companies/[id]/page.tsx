@@ -143,51 +143,51 @@ export default async function CompanyDetailPage({
   const latestRun = researchRuns[0]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
           <div>
             <Link href="/companies" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
               ← Back to Companies
             </Link>
-            <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{company.name}</h1>
               {company.overallScore !== null && (
-                <span className={`text-2xl font-bold px-3 py-1 rounded-lg ${getScoreColor(company.overallScore)}`}>
+                <span className={`text-xl sm:text-2xl font-bold px-2 sm:px-3 py-1 rounded-lg ${getScoreColor(company.overallScore)}`}>
                   {company.overallScore}/10
                 </span>
               )}
             </div>
-            <div className="text-gray-600 mt-2 space-x-4">
+            <div className="text-gray-600 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm sm:text-base">
               {company.industry && <span>Industry: {company.industry}</span>}
               {company.sizeEstimate && <span>Size: {company.sizeEstimate}</span>}
               {company.headquarters && <span>HQ: {company.headquarters}</span>}
             </div>
             {company.websiteUrl && (
-              <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm mt-1 inline-block">
+              <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm mt-1 inline-block break-all">
                 {company.websiteUrl}
               </a>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             {company.linkedinUrl && (
               <a
                 href={company.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-800 font-medium"
+                className="bg-blue-700 text-white py-2 px-3 sm:px-4 rounded-md hover:bg-blue-800 font-medium text-sm sm:text-base flex-1 sm:flex-none text-center"
               >
                 LinkedIn
               </a>
             )}
-            <form action={researchAction}>
+            <form action={researchAction} className="flex-1 sm:flex-none">
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="companyName" value={company.name} />
               <button
                 type="submit"
                 disabled={company.researchStatus === 'running'}
-                className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium disabled:bg-gray-400"
+                className="bg-blue-600 text-white py-2 px-4 sm:px-6 rounded-md hover:bg-blue-700 font-medium disabled:bg-gray-400 text-sm sm:text-base w-full"
               >
                 {company.researchStatus === 'running' ? 'Researching...' : 'Re-research'}
               </button>
@@ -204,43 +204,43 @@ export default async function CompanyDetailPage({
 
         {/* Research Summary */}
         {latestRun?.summary && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Research Summary</h2>
-            <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Research Summary</h2>
+            <div className="prose max-w-none text-gray-700 whitespace-pre-wrap text-sm sm:text-base">
               {latestRun.summary}
             </div>
-            <div className="mt-4 text-sm text-gray-500">
+            <div className="mt-4 text-xs sm:text-sm text-gray-500">
               Last updated: {new Date(latestRun.startedAt).toLocaleString()}
             </div>
           </div>
         )}
 
         {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{signals.length}</div>
-            <div className="text-sm text-gray-600">Signals</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{signals.length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Signals</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{contacts.length}</div>
-            <div className="text-sm text-gray-600">Contacts</div>
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">{contacts.length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Contacts</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{researchRuns.filter(r => r.status === 'complete').length}</div>
-            <div className="text-sm text-gray-600">Research Runs</div>
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{researchRuns.filter(r => r.status === 'complete').length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Research Runs</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <div className="text-2xl font-bold text-gray-600">
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 text-center">
+            <div className="text-lg sm:text-2xl font-bold text-gray-600">
               {company.lastResearchedAt ? new Date(company.lastResearchedAt).toLocaleDateString() : 'Never'}
             </div>
-            <div className="text-sm text-gray-600">Last Researched</div>
+            <div className="text-xs sm:text-sm text-gray-600">Last Researched</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Signals Section */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Research Signals</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Research Signals</h2>
             {signals.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">
                 No signals yet. Run research to discover company intelligence.
@@ -267,7 +267,7 @@ export default async function CompanyDetailPage({
 
           {/* Contacts Section */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Key Contacts</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Key Contacts</h2>
             {contacts.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">
                 No contacts yet. Run research to discover key people.
@@ -320,9 +320,33 @@ export default async function CompanyDetailPage({
 
         {/* Research History */}
         {researchRuns.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Research History</h2>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="mt-6 sm:mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Research History</h2>
+            {/* Mobile: Card layout */}
+            <div className="sm:hidden space-y-3">
+              {researchRuns.slice(0, 10).map(run => (
+                <div key={run.id} className="bg-white rounded-lg shadow-md p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-sm text-gray-900">
+                      {new Date(run.startedAt).toLocaleDateString()}
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      run.status === 'complete' ? 'bg-green-100 text-green-800' :
+                      run.status === 'running' ? 'bg-blue-100 text-blue-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {run.status}
+                    </span>
+                  </div>
+                  <div className="flex gap-4 text-sm text-gray-600">
+                    <span>{run.signalsFound} signals</span>
+                    <span>{run.contactsFound} contacts</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Desktop: Table layout */}
+            <div className="hidden sm:block bg-white rounded-lg shadow-md overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

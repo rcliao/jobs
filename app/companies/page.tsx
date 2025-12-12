@@ -139,10 +139,10 @@ function CompaniesPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Company Research</h1>
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Company Research</h1>
         </div>
 
         {/* Error Messages */}
@@ -153,9 +153,9 @@ function CompaniesPageContent() {
         )}
 
         {/* Add Company Form */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Company to Research</h2>
-          <form onSubmit={addCompany} className="flex gap-4">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Add Company to Research</h2>
+          <form onSubmit={addCompany} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <input
               type="text"
               value={companyName}
@@ -168,7 +168,7 @@ function CompaniesPageContent() {
             <button
               type="submit"
               disabled={adding || profileLoading}
-              className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {adding ? 'Adding...' : 'Add & Research'}
             </button>
@@ -183,90 +183,90 @@ function CompaniesPageContent() {
         ) : (
           <>
             {/* Stats */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="flex justify-between items-center">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800 mb-1">Companies</h2>
-                  <p className="text-gray-600">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Companies</h2>
+                  <p className="text-sm sm:text-base text-gray-600">
                     {stats.total === 0
                       ? 'No companies yet. Add one above to start researching!'
                       : `Showing ${companies.length} of ${stats.total} companies`}
                   </p>
                 </div>
-                <div className="flex gap-4">
+                <div className="grid grid-cols-4 gap-2 sm:flex sm:gap-4">
                   <Link href="/companies" className="text-center">
-                    <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
-                    <div className="text-sm text-gray-600">Total</div>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-600">{stats.total}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Total</div>
                   </Link>
                   <Link href="/companies?status=researched" className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{stats.researched}</div>
-                    <div className="text-sm text-gray-600">Researched</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.researched}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Researched</div>
                   </Link>
                   <Link href="/companies?status=running" className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{stats.running}</div>
-                    <div className="text-sm text-gray-600">Running</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.running}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Running</div>
                   </Link>
                   <Link href="/companies?status=pending" className="text-center">
-                    <div className="text-2xl font-bold text-gray-500">{stats.pending}</div>
-                    <div className="text-sm text-gray-600">Pending</div>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-500">{stats.pending}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Pending</div>
                   </Link>
                 </div>
               </div>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
               <Link
                 href="/companies"
-                className={`px-4 py-2 rounded-md font-medium ${!statusFilter ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base whitespace-nowrap ${!statusFilter ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 All
               </Link>
               <Link
                 href="/companies?status=researched"
-                className={`px-4 py-2 rounded-md font-medium ${statusFilter === 'researched' ? 'bg-green-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base whitespace-nowrap ${statusFilter === 'researched' ? 'bg-green-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 Researched
               </Link>
               <Link
                 href="/companies?status=running"
-                className={`px-4 py-2 rounded-md font-medium ${statusFilter === 'running' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base whitespace-nowrap ${statusFilter === 'running' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 Running
               </Link>
               <Link
                 href="/companies?status=pending"
-                className={`px-4 py-2 rounded-md font-medium ${statusFilter === 'pending' ? 'bg-gray-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base whitespace-nowrap ${statusFilter === 'pending' ? 'bg-gray-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 Pending
               </Link>
             </div>
 
             {/* Company List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {companies.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center text-gray-500">
                   No companies found. Add a company above to get started.
                 </div>
               ) : (
                 companies.map(company => (
-                  <div key={company.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Link href={`/companies/${company.id}`} className="text-xl font-semibold text-gray-900 hover:text-blue-600">
+                  <div key={company.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                          <Link href={`/companies/${company.id}`} className="text-lg sm:text-xl font-semibold text-gray-900 hover:text-blue-600 truncate">
                             {company.name}
                           </Link>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(company.researchStatus)}`}>
                             {company.researchStatus}
                           </span>
                           {company.overallScore !== null && (
-                            <span className={`text-lg font-bold ${getScoreColor(company.overallScore)}`}>
+                            <span className={`text-base sm:text-lg font-bold ${getScoreColor(company.overallScore)}`}>
                               {company.overallScore}/10
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600 space-x-4">
+                        <div className="text-xs sm:text-sm text-gray-600 flex flex-wrap gap-x-3 gap-y-1">
                           {company.industry && <span>Industry: {company.industry}</span>}
                           {company.sizeEstimate && <span>Size: {company.sizeEstimate}</span>}
                           {company.headquarters && <span>HQ: {company.headquarters}</span>}
@@ -277,10 +277,10 @@ function CompaniesPageContent() {
                           </div>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         <Link
                           href={`/companies/${company.id}`}
-                          className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 font-medium text-sm"
+                          className="bg-gray-100 text-gray-700 py-2 px-3 sm:px-4 rounded-md hover:bg-gray-200 font-medium text-sm flex-1 sm:flex-none text-center"
                         >
                           View Details
                         </Link>
@@ -288,7 +288,7 @@ function CompaniesPageContent() {
                           <button
                             onClick={() => triggerResearch(company.id, company.name)}
                             disabled={researchingId === company.id}
-                            className="bg-blue-100 text-blue-700 py-2 px-4 rounded-md hover:bg-blue-200 font-medium text-sm disabled:opacity-50"
+                            className="bg-blue-100 text-blue-700 py-2 px-3 sm:px-4 rounded-md hover:bg-blue-200 font-medium text-sm disabled:opacity-50 flex-1 sm:flex-none"
                           >
                             {researchingId === company.id ? 'Starting...' : 'Re-research'}
                           </button>
@@ -309,7 +309,7 @@ function CompaniesPageContent() {
 export default function CompaniesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />

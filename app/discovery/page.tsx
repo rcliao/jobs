@@ -69,33 +69,33 @@ export default function DiscoveryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Company Discovery</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Company Discovery</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Find companies matching your profile preferences
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Link
               href="/"
-              className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 font-medium"
+              className="bg-gray-100 text-gray-700 py-2 px-3 sm:px-4 rounded-md hover:bg-gray-200 font-medium text-sm sm:text-base"
             >
               Home
             </Link>
             <Link
               href="/companies"
-              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 font-medium"
+              className="bg-purple-600 text-white py-2 px-3 sm:px-4 rounded-md hover:bg-purple-700 font-medium text-sm sm:text-base"
             >
               Companies
             </Link>
             <button
               onClick={startDiscovery}
               disabled={starting}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-1 sm:flex-none text-sm sm:text-base"
             >
               {starting ? (
                 <>
@@ -110,7 +110,8 @@ export default function DiscoveryPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Discover Companies
+                  <span className="hidden sm:inline">Discover Companies</span>
+                  <span className="sm:hidden">Discover</span>
                 </>
               )}
             </button>
@@ -131,76 +132,102 @@ export default function DiscoveryPage() {
             <p className="text-gray-600">Loading discovery history...</p>
           </div>
         ) : runs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-lg shadow-md p-8 sm:p-12 text-center">
+            <svg className="w-12 sm:w-16 h-12 sm:h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">No Discoveries Yet</h2>
-            <p className="text-gray-600 mb-6">
-              Click "Discover Companies" to find companies matching your profile.
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No Discoveries Yet</h2>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
+              Click &quot;Discover Companies&quot; to find companies matching your profile.
             </p>
             <Link href="/config" className="text-blue-600 hover:text-blue-800">
               Configure your profile first →
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Discovered
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Researched
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {runs.map(run => (
-                  <tr key={run.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(run.startedAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(run.status)}`}>
-                        {run.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {run.companiesDiscovered}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {run.companiesResearched}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <Link
-                        href={`/discovery/${run.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        View Results →
-                      </Link>
-                    </td>
+          <>
+            {/* Mobile: Card layout */}
+            <div className="sm:hidden space-y-3">
+              {runs.map(run => (
+                <Link
+                  key={run.id}
+                  href={`/discovery/${run.id}`}
+                  className="block bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-sm font-medium text-gray-900">
+                      {new Date(run.startedAt).toLocaleDateString()}
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(run.status)}`}>
+                      {run.status}
+                    </span>
+                  </div>
+                  <div className="flex gap-4 text-sm text-gray-600">
+                    <span>{run.companiesDiscovered} discovered</span>
+                    <span>{run.companiesResearched} researched</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {/* Desktop: Table layout */}
+            <div className="hidden sm:block bg-white rounded-lg shadow-md overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Discovered
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Researched
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {runs.map(run => (
+                    <tr key={run.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(run.startedAt).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(run.status)}`}>
+                          {run.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {run.companiesDiscovered}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {run.companiesResearched}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Link
+                          href={`/discovery/${run.id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View Results →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">How Discovery Works</h3>
-          <ol className="text-blue-800 text-sm space-y-2">
+        <div className="mt-6 sm:mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+          <h3 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">How Discovery Works</h3>
+          <ol className="text-blue-800 text-xs sm:text-sm space-y-1 sm:space-y-2">
             <li>1. Generates search queries based on your profile (industries, skills, company stage)</li>
             <li>2. Searches funding news, tech blogs, and job boards for matching companies</li>
             <li>3. Researches each company for signals (funding, culture, tech stack, leadership)</li>

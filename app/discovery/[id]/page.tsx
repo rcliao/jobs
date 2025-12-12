@@ -75,9 +75,9 @@ export default function DiscoveryDetailPage({
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
             <h2 className="text-red-800 font-semibold mb-2">Error</h2>
             <p className="text-red-700">{error || 'Discovery not found'}</p>
             <Link href="/discovery" className="text-red-600 hover:text-red-800 mt-4 inline-block">
@@ -90,26 +90,26 @@ export default function DiscoveryDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Discovery Results</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Discovery Results</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               {new Date(data.run.startedAt).toLocaleString()} • {data.summary.totalDiscovered} discovered, {data.summary.totalResearched} researched
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
-              className="bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 font-medium"
+              className="bg-gray-100 text-gray-700 py-2 px-3 sm:px-4 rounded-md hover:bg-gray-200 font-medium text-sm sm:text-base"
             >
               Home
             </Link>
             <Link
               href="/discovery"
-              className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 font-medium"
+              className="bg-purple-600 text-white py-2 px-3 sm:px-4 rounded-md hover:bg-purple-700 font-medium text-sm sm:text-base"
             >
               All Discoveries
             </Link>
@@ -117,59 +117,59 @@ export default function DiscoveryDetailPage({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="text-3xl font-bold text-blue-600">{data.summary.totalDiscovered}</div>
-            <div className="text-gray-600 text-sm">Companies Discovered</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-600">{data.summary.totalDiscovered}</div>
+            <div className="text-gray-600 text-xs sm:text-sm">Companies Discovered</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="text-3xl font-bold text-green-600">{data.summary.totalResearched}</div>
-            <div className="text-gray-600 text-sm">Fully Researched</div>
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+            <div className="text-2xl sm:text-3xl font-bold text-green-600">{data.summary.totalResearched}</div>
+            <div className="text-gray-600 text-xs sm:text-sm">Fully Researched</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="text-3xl font-bold text-purple-600">{data.summary.totalAnalyzed}</div>
-            <div className="text-gray-600 text-sm">Fit Analyzed</div>
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+            <div className="text-2xl sm:text-3xl font-bold text-purple-600">{data.summary.totalAnalyzed}</div>
+            <div className="text-gray-600 text-xs sm:text-sm">Fit Analyzed</div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="text-3xl font-bold text-gray-600">
+          <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-600">
               {data.rankedCompanies[0]?.fitAnalysis?.overallFitScore || '-'}
             </div>
-            <div className="text-gray-600 text-sm">Top Fit Score</div>
+            <div className="text-gray-600 text-xs sm:text-sm">Top Fit Score</div>
           </div>
         </div>
 
         {/* Ranked Companies */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {data.rankedCompanies.map((result, index) => (
             <div key={result.company.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {/* Company Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-start">
+              <div className="p-4 sm:p-6 border-b border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                   <div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold text-gray-400">#{index + 1}</span>
-                      <h2 className="text-xl font-semibold text-gray-900">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <span className="text-xl sm:text-2xl font-bold text-gray-400">#{index + 1}</span>
+                      <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                         <Link href={`/companies/${result.company.id}`} className="hover:text-blue-600">
                           {result.company.name}
                         </Link>
                       </h2>
                       {result.fitAnalysis && (
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreBgColor(result.fitAnalysis.overallFitScore)}`}>
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getScoreBgColor(result.fitAnalysis.overallFitScore)}`}>
                           {result.fitAnalysis.overallFitScore}/10 Fit
                         </span>
                       )}
                     </div>
                     {result.discoverySnippet && (
-                      <p className="text-gray-600 mt-2 text-sm">{result.discoverySnippet}</p>
+                      <p className="text-gray-600 mt-2 text-xs sm:text-sm">{result.discoverySnippet}</p>
                     )}
                     {result.company.industry && (
-                      <p className="text-gray-500 text-sm mt-1">
+                      <p className="text-gray-500 text-xs sm:text-sm mt-1">
                         {result.company.industry} • {result.company.sizeEstimate || 'Unknown size'}
                       </p>
                     )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500 mb-2">
+                  <div className="flex sm:flex-col sm:text-right gap-3 sm:gap-0">
+                    <div className="text-xs sm:text-sm text-gray-500 sm:mb-2">
                       {result.signals.length} signals • {result.contacts.length} contacts
                     </div>
                     {result.company.websiteUrl && (
@@ -177,7 +177,7 @@ export default function DiscoveryDetailPage({
                         href={result.company.websiteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm"
                       >
                         Website →
                       </a>
@@ -188,31 +188,31 @@ export default function DiscoveryDetailPage({
 
               {/* Fit Analysis */}
               {result.fitAnalysis && (
-                <div className="p-6 bg-gray-50 border-b border-gray-200">
-                  <h3 className="font-medium text-gray-800 mb-4">Fit Analysis</h3>
+                <div className="p-4 sm:p-6 bg-gray-50 border-b border-gray-200">
+                  <h3 className="font-medium text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">Fit Analysis</h3>
 
                   {/* Score Breakdown */}
-                  <div className="grid grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-4">
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.criteriaMatchScore)}`}>
+                      <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.fitAnalysis.criteriaMatchScore)}`}>
                         {result.fitAnalysis.criteriaMatchScore}
                       </div>
                       <div className="text-xs text-gray-500">Criteria</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.cultureMatchScore)}`}>
+                      <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.fitAnalysis.cultureMatchScore)}`}>
                         {result.fitAnalysis.cultureMatchScore}
                       </div>
                       <div className="text-xs text-gray-500">Culture</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.opportunityScore)}`}>
+                      <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.fitAnalysis.opportunityScore)}`}>
                         {result.fitAnalysis.opportunityScore}
                       </div>
                       <div className="text-xs text-gray-500">Opportunity</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getScoreColor(result.fitAnalysis.locationMatchScore)}`}>
+                      <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.fitAnalysis.locationMatchScore)}`}>
                         {result.fitAnalysis.locationMatchScore}
                       </div>
                       <div className="text-xs text-gray-500">Location</div>
@@ -220,7 +220,7 @@ export default function DiscoveryDetailPage({
                   </div>
 
                   {/* Analysis Text */}
-                  <div className="space-y-3 text-sm">
+                  <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
                     <div>
                       <span className="font-medium text-gray-700">Criteria Match: </span>
                       <span className="text-gray-600">{result.fitAnalysis.criteriaMatchAnalysis}</span>
@@ -233,12 +233,12 @@ export default function DiscoveryDetailPage({
 
                   {/* Outreach Template */}
                   {result.fitAnalysis.outreachTemplate && (
-                    <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-white border border-gray-200 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-gray-700 text-sm">Outreach Template</span>
+                        <span className="font-medium text-gray-700 text-xs sm:text-sm">Outreach Template</span>
                         <button
                           onClick={() => copyToClipboard(result.fitAnalysis!.outreachTemplate!, result.company.id)}
-                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                          className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm flex items-center gap-1"
                         >
                           {copiedTemplate === result.company.id ? (
                             <>
@@ -257,7 +257,7 @@ export default function DiscoveryDetailPage({
                           )}
                         </button>
                       </div>
-                      <p className="text-gray-600 text-sm italic">&quot;{result.fitAnalysis.outreachTemplate}&quot;</p>
+                      <p className="text-gray-600 text-xs sm:text-sm italic">&quot;{result.fitAnalysis.outreachTemplate}&quot;</p>
                     </div>
                   )}
                 </div>
@@ -265,11 +265,11 @@ export default function DiscoveryDetailPage({
 
               {/* Top Contacts */}
               {result.contacts.length > 0 && (
-                <div className="p-6">
-                  <h3 className="font-medium text-gray-800 mb-3">Key Contacts</h3>
+                <div className="p-4 sm:p-6">
+                  <h3 className="font-medium text-gray-800 mb-3 text-sm sm:text-base">Key Contacts</h3>
                   <div className="space-y-2">
                     {result.contacts.slice(0, 3).map(contact => (
-                      <div key={contact.id} className="flex justify-between items-center text-sm">
+                      <div key={contact.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0 text-xs sm:text-sm">
                         <div>
                           <span className="font-medium text-gray-900">{contact.name}</span>
                           <span className="text-gray-500 ml-2">{contact.title}</span>
@@ -292,7 +292,7 @@ export default function DiscoveryDetailPage({
                     {result.contacts.length > 3 && (
                       <Link
                         href={`/companies/${result.company.id}`}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm"
                       >
                         +{result.contacts.length - 3} more contacts →
                       </Link>
