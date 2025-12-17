@@ -12,6 +12,8 @@ import { triggerCompanyResearch } from '@/lib/agent/company-research'
 import type { SignalCategory, Contact } from '@/types'
 import { ContactStatusSelect } from './ContactStatusSelect'
 import { SignalCard } from './SignalCard'
+import { QuickActionsPanel } from './QuickActionsPanel'
+import { CopyEmailButton } from './CopyEmailButton'
 
 // Server Action to trigger research
 async function researchAction(formData: FormData) {
@@ -215,6 +217,11 @@ export default async function CompanyDetailPage({
           </div>
         )}
 
+        {/* Quick Actions Panel */}
+        <div className="mb-6 sm:mb-8">
+          <QuickActionsPanel company={company} />
+        </div>
+
         {/* Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 text-center">
@@ -274,45 +281,111 @@ export default async function CompanyDetailPage({
               </div>
             ) : (
               <div className="space-y-3">
-                {contacts.map(contact => (
-                  <div key={contact.id} className="bg-white rounded-lg shadow-md p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span>{getContactTypeIcon(contact.contactType)}</span>
-                          <span className="font-semibold text-gray-900">{contact.name}</span>
-                          {contact.relevanceScore && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                              {contact.relevanceScore}/10
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600">{contact.title}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${getOutreachStatusColor(contact.outreachStatus)}`}>
-                            {contact.outreachStatus.replace('_', ' ')}
-                          </span>
-                          {contact.linkedinUrl && (
-                            <a
-                              href={contact.linkedinUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline"
-                            >
-                              LinkedIn
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      <ContactStatusSelect
-                        contactId={contact.id}
-                        companyId={company.id}
-                        defaultValue={contact.outreachStatus}
-                        action={updateContactAction}
-                      />
+                {/* Priority Contacts (score >= 7) */}
+                {contacts.filter(c => (c.relevanceScore ?? 0) >= 7).length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-1">
+                      <span className="text-yellow-500">★</span> Priority Contacts
+                    </h3>
+                    <div className="space-y-2">
+                      {contacts
+                        .filter(c => (c.relevanceScore ?? 0) >= 7)
+                        .map(contact => (
+                          <div key={contact.id} className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-400">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span>{getContactTypeIcon(contact.contactType)}</span>
+                                  <span className="font-semibold text-gray-900">{contact.name}</span>
+                                  {contact.relevanceScore && (
+                                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded font-medium">
+                                      {contact.relevanceScore}/10
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600">{contact.title}</p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${getOutreachStatusColor(contact.outreachStatus)}`}>
+                                    {contact.outreachStatus.replace('_', ' ')}
+                                  </span>
+                                  {contact.linkedinUrl && (
+                                    <a
+                                      href={contact.linkedinUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-700"
+                                    >
+                                      LinkedIn
+                                    </a>
+                                  )}
+                                  {contact.email && (
+                                    <CopyEmailButton email={contact.email} />
+                                  )}
+                                </div>
+                              </div>
+                              <ContactStatusSelect
+                                contactId={contact.id}
+                                companyId={company.id}
+                                defaultValue={contact.outreachStatus}
+                                action={updateContactAction}
+                              />
+                            </div>
+                          </div>
+                        ))}
                     </div>
                   </div>
-                ))}
+                )}
+                {/* Other Contacts */}
+                {contacts.filter(c => (c.relevanceScore ?? 0) < 7).length > 0 && (
+                  <div>
+                    {contacts.filter(c => (c.relevanceScore ?? 0) >= 7).length > 0 && (
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Other Contacts</h3>
+                    )}
+                    <div className="space-y-2">
+                      {contacts
+                        .filter(c => (c.relevanceScore ?? 0) < 7)
+                        .map(contact => (
+                          <div key={contact.id} className="bg-white rounded-lg shadow-md p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span>{getContactTypeIcon(contact.contactType)}</span>
+                                  <span className="font-semibold text-gray-900">{contact.name}</span>
+                                  {contact.relevanceScore && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                      {contact.relevanceScore}/10
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600">{contact.title}</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${getOutreachStatusColor(contact.outreachStatus)}`}>
+                                    {contact.outreachStatus.replace('_', ' ')}
+                                  </span>
+                                  {contact.linkedinUrl && (
+                                    <a
+                                      href={contact.linkedinUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-600 hover:underline"
+                                    >
+                                      LinkedIn
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                              <ContactStatusSelect
+                                contactId={contact.id}
+                                companyId={company.id}
+                                defaultValue={contact.outreachStatus}
+                                action={updateContactAction}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

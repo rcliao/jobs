@@ -15,7 +15,8 @@ import type {
   ResearchAgentBehaviorConfig,
   ResearchAgentToolsConfig,
   SignalCategory,
-  ContactType
+  ContactType,
+  ExtractedUrlsMetadata
 } from '@/types'
 
 const db = getDb()
@@ -25,6 +26,15 @@ const db = getDb()
 // ============================================
 
 function rowToCompany(row: CompanyRow): Company {
+  let extractedUrlsMetadata: ExtractedUrlsMetadata | null = null
+  if (row.extracted_urls_metadata) {
+    try {
+      extractedUrlsMetadata = JSON.parse(row.extracted_urls_metadata)
+    } catch {
+      // Invalid JSON, leave as null
+    }
+  }
+
   return {
     id: row.id,
     name: row.name,
@@ -34,6 +44,12 @@ function rowToCompany(row: CompanyRow): Company {
     headquarters: row.headquarters,
     linkedinUrl: row.linkedin_url,
     websiteUrl: row.website_url,
+    careersPageUrl: row.careers_page_url,
+    culturePageUrl: row.culture_page_url,
+    glassdoorUrl: row.glassdoor_url,
+    crunchbaseUrl: row.crunchbase_url,
+    foundedYear: row.founded_year,
+    extractedUrlsMetadata,
     overallScore: row.overall_score,
     researchStatus: row.research_status as Company['researchStatus'],
     lastResearchedAt: row.last_researched_at ? new Date(row.last_researched_at * 1000) : null,
@@ -232,6 +248,30 @@ export function updateCompany(
     updates.push('website_url = ?')
     params.push(data.websiteUrl)
   }
+  if (data.careersPageUrl !== undefined) {
+    updates.push('careers_page_url = ?')
+    params.push(data.careersPageUrl)
+  }
+  if (data.culturePageUrl !== undefined) {
+    updates.push('culture_page_url = ?')
+    params.push(data.culturePageUrl)
+  }
+  if (data.glassdoorUrl !== undefined) {
+    updates.push('glassdoor_url = ?')
+    params.push(data.glassdoorUrl)
+  }
+  if (data.crunchbaseUrl !== undefined) {
+    updates.push('crunchbase_url = ?')
+    params.push(data.crunchbaseUrl)
+  }
+  if (data.foundedYear !== undefined) {
+    updates.push('founded_year = ?')
+    params.push(data.foundedYear)
+  }
+  if (data.extractedUrlsMetadata !== undefined) {
+    updates.push('extracted_urls_metadata = ?')
+    params.push(data.extractedUrlsMetadata ? JSON.stringify(data.extractedUrlsMetadata) : null)
+  }
   if (data.overallScore !== undefined) {
     updates.push('overall_score = ?')
     params.push(data.overallScore)
@@ -255,6 +295,46 @@ export function updateCompany(
 
   const stmt = db.prepare(`UPDATE companies SET ${updates.join(', ')} WHERE id = ?`)
   stmt.run(...params)
+
+  return getCompany(id)
+}
+
+// Update company URLs with COALESCE logic (only update if new value is not null and existing is null)
+export interface ExtractedCompanyUrls {
+  careersPageUrl?: string | null
+  culturePageUrl?: string | null
+  glassdoorUrl?: string | null
+  crunchbaseUrl?: string | null
+  foundedYear?: number | null
+  metadata?: ExtractedUrlsMetadata
+}
+
+export function updateCompanyUrls(id: string, urls: ExtractedCompanyUrls): Company | null {
+  const now = Math.floor(Date.now() / 1000)
+
+  // Use COALESCE to preserve existing values
+  const stmt = db.prepare(`
+    UPDATE companies SET
+      careers_page_url = COALESCE(?, careers_page_url),
+      culture_page_url = COALESCE(?, culture_page_url),
+      glassdoor_url = COALESCE(?, glassdoor_url),
+      crunchbase_url = COALESCE(?, crunchbase_url),
+      founded_year = COALESCE(?, founded_year),
+      extracted_urls_metadata = ?,
+      updated_at = ?
+    WHERE id = ?
+  `)
+
+  stmt.run(
+    urls.careersPageUrl || null,
+    urls.culturePageUrl || null,
+    urls.glassdoorUrl || null,
+    urls.crunchbaseUrl || null,
+    urls.foundedYear || null,
+    urls.metadata ? JSON.stringify(urls.metadata) : null,
+    now,
+    id
+  )
 
   return getCompany(id)
 }

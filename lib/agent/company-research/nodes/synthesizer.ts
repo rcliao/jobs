@@ -4,12 +4,13 @@ import { getResearchAgentConfig } from '@/lib/db/company-queries'
 import {
   updateCompanyResearchRun,
   updateCompany,
+  updateCompanyUrls,
   saveCompanySignals,
-  saveContacts,
-  getCompanyResearchRun
+  saveContacts
 } from '@/lib/db/company-queries'
 import { synthesizeResearchWithGemini } from '../gemini-research'
-import type { SignalCategory } from '@/types'
+import { validateExtractedUrls } from '../url-validator'
+import type { ExtractedUrlsMetadata } from '@/types'
 
 /**
  * Synthesizer node - generates final research summary and persists to database
@@ -22,7 +23,8 @@ export async function synthesizerNode(
     companyName,
     researchRunId,
     collectedSignals,
-    discoveredContacts
+    discoveredContacts,
+    extractedUrls
   } = state
 
   // Load config
@@ -83,6 +85,51 @@ export async function synthesizerNode(
         researchStatus: 'researched',
         lastResearchedAt: new Date()
       })
+
+      // Validate and save extracted URLs (if any were found)
+      if (extractedUrls) {
+        console.log(`Validating extracted URLs for ${companyName}...`)
+
+        // Validate URLs before saving - use LLM validation for better accuracy
+        const validatedUrls = await validateExtractedUrls(extractedUrls, companyName, {
+          useLLM: true,
+          validateReachability: true
+        })
+
+        // Log validation results
+        const validationSummary = Object.entries(validatedUrls.validationResults)
+          .map(([type, result]) => `${type}: ${result.isValid ? 'valid' : 'rejected'} (${result.reason})`)
+          .join(', ')
+        if (validationSummary) {
+          console.log(`URL validation results: ${validationSummary}`)
+        }
+
+        // Only save URLs that passed validation
+        const hasValidUrls = validatedUrls.careersPageUrl ||
+          validatedUrls.culturePageUrl ||
+          validatedUrls.glassdoorUrl ||
+          validatedUrls.crunchbaseUrl ||
+          validatedUrls.foundedYear
+
+        if (hasValidUrls) {
+          const urlMetadata: ExtractedUrlsMetadata = {
+            lastExtractedAt: new Date().toISOString(),
+            alternativeUrls: extractedUrls.alternatives,
+            extractionConfidence: extractedUrls.confidence
+          }
+          await updateCompanyUrls(companyId, {
+            careersPageUrl: validatedUrls.careersPageUrl,
+            culturePageUrl: validatedUrls.culturePageUrl,
+            glassdoorUrl: validatedUrls.glassdoorUrl,
+            crunchbaseUrl: validatedUrls.crunchbaseUrl,
+            foundedYear: validatedUrls.foundedYear,
+            metadata: urlMetadata
+          })
+          console.log(`Saved validated URLs for ${companyName}`)
+        } else {
+          console.log(`No valid URLs found for ${companyName} after validation`)
+        }
+      }
     }
 
     // Format the summary message

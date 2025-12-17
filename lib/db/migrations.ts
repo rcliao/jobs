@@ -46,6 +46,29 @@ function migrateGenericProfile(db: ReturnType<typeof getDb>) {
   console.log('✓ Generic profile migration complete')
 }
 
+// Migration: Add company URL fields for actionable quick links
+function migrateAddCompanyUrlFields(db: ReturnType<typeof getDb>) {
+  console.log('Running migration: add company URL fields...')
+
+  const urlFields = [
+    { column: 'careers_page_url', type: 'TEXT' },
+    { column: 'culture_page_url', type: 'TEXT' },
+    { column: 'glassdoor_url', type: 'TEXT' },
+    { column: 'crunchbase_url', type: 'TEXT' },
+    { column: 'founded_year', type: 'INTEGER' },
+    { column: 'extracted_urls_metadata', type: 'TEXT' }
+  ]
+
+  for (const { column, type } of urlFields) {
+    if (!columnExists(db, 'companies', column)) {
+      console.log(`  Adding ${column} to companies...`)
+      db.exec(`ALTER TABLE companies ADD COLUMN ${column} ${type}`)
+    }
+  }
+
+  console.log('✓ Company URL fields migration complete')
+}
+
 // Migration: Add profile_id to tables for multi-profile support
 function migrateAddProfileId(db: ReturnType<typeof getDb>) {
   console.log('Running migration: add profile_id columns...')
@@ -113,6 +136,9 @@ async function runMigrations() {
 
     // Run generic profile migration
     migrateGenericProfile(db)
+
+    // Run company URL fields migration
+    migrateAddCompanyUrlFields(db)
 
     console.log('Database migration complete!')
   } catch (error) {

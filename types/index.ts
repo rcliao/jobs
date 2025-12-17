@@ -65,6 +65,22 @@ export type ContactType =
 
 export type ResearchAgentType = 'orchestrator' | 'signal_worker' | 'contact_worker' | 'synthesizer'
 
+// Extracted URLs metadata from research
+export interface ExtractedUrlsMetadata {
+  lastExtractedAt: string
+  alternativeUrls: {
+    careers: string[]
+    culture: string[]
+    reviews: string[]
+  }
+  extractionConfidence: {
+    careers: number
+    culture: number
+    glassdoor: number
+    crunchbase: number
+  }
+}
+
 // Company entity
 export interface Company {
   id: string
@@ -75,6 +91,12 @@ export interface Company {
   headquarters: string | null
   linkedinUrl: string | null
   websiteUrl: string | null
+  careersPageUrl: string | null
+  culturePageUrl: string | null
+  glassdoorUrl: string | null
+  crunchbaseUrl: string | null
+  foundedYear: number | null
+  extractedUrlsMetadata: ExtractedUrlsMetadata | null
   overallScore: number | null
   researchStatus: 'pending' | 'running' | 'researched' | 'failed'
   lastResearchedAt: Date | null
@@ -91,6 +113,12 @@ export interface CompanyRow {
   headquarters: string | null
   linkedin_url: string | null
   website_url: string | null
+  careers_page_url: string | null
+  culture_page_url: string | null
+  glassdoor_url: string | null
+  crunchbase_url: string | null
+  founded_year: number | null
+  extracted_urls_metadata: string | null  // JSON string
   overall_score: number | null
   research_status: string
   last_researched_at: number | null

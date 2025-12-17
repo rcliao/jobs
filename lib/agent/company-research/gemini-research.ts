@@ -46,6 +46,26 @@ interface SynthesisResult {
   recommendedApproach: string
 }
 
+// Extracted company URLs
+export interface ExtractedUrls {
+  careersPageUrl: string | null
+  culturePageUrl: string | null
+  glassdoorUrl: string | null
+  crunchbaseUrl: string | null
+  foundedYear: number | null
+  alternatives: {
+    careers: string[]
+    culture: string[]
+    reviews: string[]
+  }
+  confidence: {
+    careers: number
+    culture: number
+    glassdoor: number
+    crunchbase: number
+  }
+}
+
 // Schema for signal analysis response
 const signalAnalysisSchema: Schema = {
   type: SchemaType.ARRAY,
@@ -457,4 +477,362 @@ function calculateDefaultScore(
   if (totalWeight === 0) return 5
 
   return Math.round(weightedSum / totalWeight)
+}
+
+// Search engines and redirect URLs - should NEVER be stored as company URLs
+const SEARCH_ENGINE_PATTERNS = [
+  'google.com/search',
+  'google.com/url',
+  'www.google.com/search',
+  'www.google.com/url',
+  'bing.com/search',
+  'yahoo.com/search',
+  'duckduckgo.com/',
+  'baidu.com/s',
+  'yandex.com/search',
+  'search.yahoo.com',
+  'webcache.googleusercontent.com',
+  'translate.google.com',
+  'bit.ly/',
+  'tinyurl.com/',
+  't.co/',
+  'goo.gl/'
+]
+
+// Job board domains that list jobs for many companies - should NOT be used as company careers pages
+const JOB_BOARD_DOMAINS = [
+  'glassdoor.com',
+  'linkedin.com',
+  'indeed.com',
+  'ycombinator.com',
+  'lever.co',
+  'greenhouse.io',
+  'workable.com',
+  'ashbyhq.com',
+  'smartrecruiters.com',
+  'jobvite.com',
+  'icims.com',
+  'workday.com',
+  'breezy.hr',
+  'recruitee.com',
+  'bamboohr.com',
+  'angel.co',
+  'wellfound.com',
+  'zip recruiter',
+  'monster.com',
+  'careerbuilder.com',
+  'dice.com',
+  'stackoverflow.com/jobs',
+  'hired.com',
+  'triplebyte.com',
+  'builtin.com'
+]
+
+// Generic sites that should not be used as culture/about pages
+const GENERIC_SITES = [
+  'wikipedia.org',
+  'linkedin.com',
+  'twitter.com',
+  'x.com',
+  'facebook.com',
+  'youtube.com',
+  'medium.com',
+  'news.ycombinator.com'
+]
+
+/**
+ * Check if URL is a search engine or redirect URL
+ */
+function isSearchEngineUrl(url: string): boolean {
+  const urlLower = url.toLowerCase()
+  return SEARCH_ENGINE_PATTERNS.some(pattern => urlLower.includes(pattern))
+}
+
+/**
+ * Generate company name variations for matching
+ */
+function getCompanyNameVariations(companyName: string): string[] {
+  const name = companyName.toLowerCase()
+  const variations: string[] = [name]
+
+  // Remove common suffixes
+  const withoutSuffix = name
+    .replace(/\.(ai|io|co|com|org|net|app|dev|tech)$/i, '')
+    .replace(/,?\s*(inc|llc|ltd|corp|corporation|company)\.?$/i, '')
+    .trim()
+  if (withoutSuffix !== name) {
+    variations.push(withoutSuffix)
+  }
+
+  // No spaces version
+  const noSpaces = name.replace(/\s+/g, '')
+  if (noSpaces !== name) {
+    variations.push(noSpaces)
+  }
+
+  // Hyphenated version
+  const hyphenated = name.replace(/\s+/g, '-')
+  if (hyphenated !== name) {
+    variations.push(hyphenated)
+  }
+
+  return [...new Set(variations)]
+}
+
+/**
+ * Check if URL likely belongs to the company
+ */
+function urlBelongsToCompany(
+  url: string,
+  title: string,
+  snippet: string,
+  companyNameVariations: string[],
+  companyDomain: string | null
+): { belongs: boolean; confidence: number } {
+  const urlLower = url.toLowerCase()
+  const titleLower = title.toLowerCase()
+
+  // Check if it's the company's own domain (highest confidence)
+  if (companyDomain) {
+    const domainLower = companyDomain.toLowerCase()
+    if (urlLower.includes(domainLower)) {
+      return { belongs: true, confidence: 0.95 }
+    }
+  }
+
+  // Check if company name appears in the URL path (not just query params)
+  const urlPath = urlLower.split('?')[0]
+  for (const variation of companyNameVariations) {
+    if (variation.length >= 3 && urlPath.includes(variation)) {
+      return { belongs: true, confidence: 0.7 }
+    }
+  }
+
+  // Check if company name is prominently in the title
+  for (const variation of companyNameVariations) {
+    if (variation.length >= 3 && titleLower.includes(variation)) {
+      return { belongs: true, confidence: 0.6 }
+    }
+  }
+
+  return { belongs: false, confidence: 0 }
+}
+
+/**
+ * Extract company URLs from search results using pattern matching
+ * This is a lightweight extraction that doesn't need an LLM call
+ */
+export function extractUrlsFromSearchResults(
+  searchResults: GoogleSearchResult[],
+  companyName: string,
+  companyDomain?: string | null
+): ExtractedUrls {
+  const result: ExtractedUrls = {
+    careersPageUrl: null,
+    culturePageUrl: null,
+    glassdoorUrl: null,
+    crunchbaseUrl: null,
+    foundedYear: null,
+    alternatives: {
+      careers: [],
+      culture: [],
+      reviews: []
+    },
+    confidence: {
+      careers: 0,
+      culture: 0,
+      glassdoor: 0,
+      crunchbase: 0
+    }
+  }
+
+  const companyNameVariations = getCompanyNameVariations(companyName)
+  const domainToUse = companyDomain || null
+
+  for (const r of searchResults) {
+    const url = r.link.toLowerCase()
+    const title = r.title.toLowerCase()
+    const snippet = r.snippet.toLowerCase()
+
+    // Skip search engine URLs entirely - these should NEVER be stored
+    if (isSearchEngineUrl(url)) {
+      continue
+    }
+
+    // Check if this URL belongs to the company
+    const { belongs: urlBelongs, confidence: urlConfidence } = urlBelongsToCompany(
+      url, r.title, r.snippet, companyNameVariations, domainToUse
+    )
+
+    // Extract Glassdoor URL - must contain company name to be relevant
+    if (url.includes('glassdoor.com')) {
+      const hasCompanyName = companyNameVariations.some(v => v.length >= 3 && (url.includes(v) || title.includes(v)))
+      if (hasCompanyName) {
+        if (!result.glassdoorUrl || result.confidence.glassdoor < 0.9) {
+          result.glassdoorUrl = r.link
+          result.confidence.glassdoor = 0.9
+        } else {
+          result.alternatives.reviews.push(r.link)
+        }
+      }
+    }
+
+    // Extract Crunchbase URL - must be organization page with company name
+    if (url.includes('crunchbase.com/organization')) {
+      const hasCompanyName = companyNameVariations.some(v => v.length >= 3 && url.includes(v))
+      if (hasCompanyName) {
+        if (!result.crunchbaseUrl || result.confidence.crunchbase < 0.9) {
+          result.crunchbaseUrl = r.link
+          result.confidence.crunchbase = 0.9
+        }
+      }
+    }
+
+    // Check if this is a job board (should NOT be used as careers page)
+    const isJobBoard = JOB_BOARD_DOMAINS.some(domain => url.includes(domain))
+
+    // Extract careers page URL - ONLY from company's own domain or verified company pages
+    if (!isJobBoard) {
+      const careersPatterns = ['/careers', '/jobs', '/join', '/work-with-us', 'careers.', 'jobs.']
+      const isCareersPage = careersPatterns.some(p => url.includes(p)) ||
+        (title.includes('careers') && urlBelongs) ||
+        (title.includes('jobs at') && urlBelongs)
+
+      if (isCareersPage && urlBelongs && urlConfidence >= 0.6) {
+        if (!result.careersPageUrl || urlConfidence > result.confidence.careers) {
+          result.careersPageUrl = r.link
+          result.confidence.careers = urlConfidence
+        }
+        result.alternatives.careers.push(r.link)
+      }
+    }
+
+    // Check if this is a generic site (should NOT be used as culture page)
+    const isGenericSite = GENERIC_SITES.some(site => url.includes(site))
+
+    // Extract culture page URL - ONLY from company's own domain
+    if (!isGenericSite && !isJobBoard) {
+      const culturePatterns = ['/about', '/culture', '/values', '/life', '/team', '/company']
+      const isCulturePage = culturePatterns.some(p => url.includes(p)) ||
+        title.includes('about us') ||
+        title.includes('our culture') ||
+        title.includes('our values')
+
+      if (isCulturePage && urlBelongs && urlConfidence >= 0.6) {
+        if (!result.culturePageUrl || urlConfidence > result.confidence.culture) {
+          result.culturePageUrl = r.link
+          result.confidence.culture = urlConfidence
+        }
+        result.alternatives.culture.push(r.link)
+      }
+    }
+
+    // Extract founded year from snippets (only if snippet mentions company)
+    if (!result.foundedYear) {
+      const snippetMentionsCompany = companyNameVariations.some(v => v.length >= 3 && snippet.includes(v))
+      if (snippetMentionsCompany) {
+        const foundedMatch = snippet.match(/founded\s+(?:in\s+)?(\d{4})/i) ||
+          snippet.match(/established\s+(?:in\s+)?(\d{4})/i) ||
+          snippet.match(/started\s+(?:in\s+)?(\d{4})/i)
+        if (foundedMatch) {
+          const year = parseInt(foundedMatch[1], 10)
+          if (year >= 1800 && year <= new Date().getFullYear()) {
+            result.foundedYear = year
+          }
+        }
+      }
+    }
+  }
+
+  // Remove duplicates from alternatives
+  result.alternatives.careers = [...new Set(result.alternatives.careers)]
+  result.alternatives.culture = [...new Set(result.alternatives.culture)]
+  result.alternatives.reviews = [...new Set(result.alternatives.reviews)]
+
+  // Final safety check - ensure no search engine URLs made it through
+  if (result.careersPageUrl && isSearchEngineUrl(result.careersPageUrl)) {
+    console.warn(`Blocked search engine URL for careers: ${result.careersPageUrl}`)
+    result.careersPageUrl = null
+    result.confidence.careers = 0
+  }
+  if (result.culturePageUrl && isSearchEngineUrl(result.culturePageUrl)) {
+    console.warn(`Blocked search engine URL for culture: ${result.culturePageUrl}`)
+    result.culturePageUrl = null
+    result.confidence.culture = 0
+  }
+  if (result.glassdoorUrl && isSearchEngineUrl(result.glassdoorUrl)) {
+    console.warn(`Blocked search engine URL for glassdoor: ${result.glassdoorUrl}`)
+    result.glassdoorUrl = null
+    result.confidence.glassdoor = 0
+  }
+  if (result.crunchbaseUrl && isSearchEngineUrl(result.crunchbaseUrl)) {
+    console.warn(`Blocked search engine URL for crunchbase: ${result.crunchbaseUrl}`)
+    result.crunchbaseUrl = null
+    result.confidence.crunchbase = 0
+  }
+
+  // Filter alternatives as well
+  result.alternatives.careers = result.alternatives.careers.filter(url => !isSearchEngineUrl(url))
+  result.alternatives.culture = result.alternatives.culture.filter(url => !isSearchEngineUrl(url))
+  result.alternatives.reviews = result.alternatives.reviews.filter(url => !isSearchEngineUrl(url))
+
+  return result
+}
+
+/**
+ * Safely get URL if not a search engine URL
+ */
+function safeUrl(url: string | null): string | null {
+  return url && !isSearchEngineUrl(url) ? url : null
+}
+
+/**
+ * Merge multiple ExtractedUrls results, preferring higher confidence values
+ */
+export function mergeExtractedUrls(existing: ExtractedUrls | null, incoming: ExtractedUrls): ExtractedUrls {
+  if (!existing) return incoming
+
+  // Helper to pick best URL while filtering search engine URLs
+  const pickBestUrl = (
+    existingUrl: string | null,
+    incomingUrl: string | null,
+    existingConf: number,
+    incomingConf: number
+  ): string | null => {
+    const safeExisting = safeUrl(existingUrl)
+    const safeIncoming = safeUrl(incomingUrl)
+    if (incomingConf > existingConf && safeIncoming) return safeIncoming
+    return safeExisting || safeIncoming
+  }
+
+  return {
+    careersPageUrl: pickBestUrl(
+      existing.careersPageUrl, incoming.careersPageUrl,
+      existing.confidence.careers, incoming.confidence.careers
+    ),
+    culturePageUrl: pickBestUrl(
+      existing.culturePageUrl, incoming.culturePageUrl,
+      existing.confidence.culture, incoming.confidence.culture
+    ),
+    glassdoorUrl: pickBestUrl(
+      existing.glassdoorUrl, incoming.glassdoorUrl,
+      existing.confidence.glassdoor, incoming.confidence.glassdoor
+    ),
+    crunchbaseUrl: pickBestUrl(
+      existing.crunchbaseUrl, incoming.crunchbaseUrl,
+      existing.confidence.crunchbase, incoming.confidence.crunchbase
+    ),
+    foundedYear: existing.foundedYear || incoming.foundedYear,
+    alternatives: {
+      careers: [...new Set([...existing.alternatives.careers, ...incoming.alternatives.careers])].filter(u => !isSearchEngineUrl(u)),
+      culture: [...new Set([...existing.alternatives.culture, ...incoming.alternatives.culture])].filter(u => !isSearchEngineUrl(u)),
+      reviews: [...new Set([...existing.alternatives.reviews, ...incoming.alternatives.reviews])].filter(u => !isSearchEngineUrl(u))
+    },
+    confidence: {
+      careers: Math.max(existing.confidence.careers, incoming.confidence.careers),
+      culture: Math.max(existing.confidence.culture, incoming.confidence.culture),
+      glassdoor: Math.max(existing.confidence.glassdoor, incoming.confidence.glassdoor),
+      crunchbase: Math.max(existing.confidence.crunchbase, incoming.confidence.crunchbase)
+    }
+  }
 }

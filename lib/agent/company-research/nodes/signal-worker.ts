@@ -4,7 +4,7 @@ import type { CompanyResearchStateType, CollectedSignal } from '../state'
 import type { SignalCategory } from '@/types'
 import { getResearchAgentConfig } from '@/lib/db/company-queries'
 import { searchGoogle } from '@/lib/search/google'
-import { analyzeSignalsWithGemini } from '../gemini-research'
+import { analyzeSignalsWithGemini, extractUrlsFromSearchResults } from '../gemini-research'
 
 // Query templates for each signal category
 const SIGNAL_QUERY_TEMPLATES: Record<SignalCategory, string[]> = {
@@ -53,7 +53,7 @@ const DATE_RESTRICTIONS: Record<SignalCategory, string> = {
 export async function signalWorkerNode(
   state: CompanyResearchStateType
 ): Promise<Partial<CompanyResearchStateType>> {
-  const { companyName, currentSignalCategory, signalIterations } = state
+  const { companyName, companyDomain, currentSignalCategory, signalIterations } = state
 
   if (!currentSignalCategory) {
     return {
@@ -114,6 +114,9 @@ export async function signalWorkerNode(
       config?.systemPrompt
     )
 
+    // Extract URLs from search results (lightweight, no LLM call)
+    const extractedUrls = extractUrlsFromSearchResults(results, companyName, companyDomain)
+
     // Filter by confidence threshold
     const qualitySignals = signals.filter(s => s.confidence >= confidenceThreshold)
 
@@ -147,6 +150,7 @@ export async function signalWorkerNode(
 
     return {
       collectedSignals,
+      extractedUrls,
       signalIterations: updatedIterations as Record<SignalCategory, typeof currentIter>,
       apiCallsThisRun: 2, // 1 search + 1 LLM call
       messages: [new AIMessage(

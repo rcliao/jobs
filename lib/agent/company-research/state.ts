@@ -1,6 +1,7 @@
 import { Annotation } from '@langchain/langgraph'
 import { BaseMessage } from '@langchain/core/messages'
 import type { SignalCategory, ContactType } from '@/types'
+import type { ExtractedUrls } from './gemini-research'
 
 // Iteration tracking for each signal category
 export interface SignalIterationState {
@@ -198,6 +199,42 @@ export const CompanyResearchState = Annotation.Root({
   apiCallsThisRun: Annotation<number>({
     reducer: (x, y) => x + y,
     default: () => 0
+  }),
+
+  // Extracted company URLs accumulated during research
+  extractedUrls: Annotation<ExtractedUrls | null>({
+    reducer: (existing, incoming) => {
+      if (!incoming) return existing
+      if (!existing) return incoming
+      // Merge extracted URLs, preferring higher confidence
+      return {
+        careersPageUrl: incoming.confidence.careers > existing.confidence.careers
+          ? incoming.careersPageUrl
+          : existing.careersPageUrl || incoming.careersPageUrl,
+        culturePageUrl: incoming.confidence.culture > existing.confidence.culture
+          ? incoming.culturePageUrl
+          : existing.culturePageUrl || incoming.culturePageUrl,
+        glassdoorUrl: incoming.confidence.glassdoor > existing.confidence.glassdoor
+          ? incoming.glassdoorUrl
+          : existing.glassdoorUrl || incoming.glassdoorUrl,
+        crunchbaseUrl: incoming.confidence.crunchbase > existing.confidence.crunchbase
+          ? incoming.crunchbaseUrl
+          : existing.crunchbaseUrl || incoming.crunchbaseUrl,
+        foundedYear: existing.foundedYear || incoming.foundedYear,
+        alternatives: {
+          careers: [...new Set([...existing.alternatives.careers, ...incoming.alternatives.careers])],
+          culture: [...new Set([...existing.alternatives.culture, ...incoming.alternatives.culture])],
+          reviews: [...new Set([...existing.alternatives.reviews, ...incoming.alternatives.reviews])]
+        },
+        confidence: {
+          careers: Math.max(existing.confidence.careers, incoming.confidence.careers),
+          culture: Math.max(existing.confidence.culture, incoming.confidence.culture),
+          glassdoor: Math.max(existing.confidence.glassdoor, incoming.confidence.glassdoor),
+          crunchbase: Math.max(existing.confidence.crunchbase, incoming.confidence.crunchbase)
+        }
+      }
+    },
+    default: () => null
   })
 })
 
