@@ -19,7 +19,7 @@
     "better-sqlite3": "^12.4.1",
     "langchain": "^1.0.6",
     "langsmith": "^0.3.82",
-    "next": "16.0.3",
+    "next": "^16.0.10",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "zod": "^4.1.12"
