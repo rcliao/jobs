@@ -168,7 +168,7 @@ export const analyzeSignalsWithGemini = traceable(async function analyzeSignalsW
 ): Promise<AnalyzedSignal[]> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: signalAnalysisSchema
@@ -263,7 +263,7 @@ export const extractContactsWithGemini = traceable(async function extractContact
 ): Promise<ExtractedContact[]> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: contactExtractionSchema
@@ -350,7 +350,7 @@ export const synthesizeResearchWithGemini = traceable(async function synthesizeR
 ): Promise<SynthesisResult> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: synthesisSchema
@@ -951,7 +951,7 @@ export const discoverCompanyUrls = traceable(async function discoverCompanyUrls(
     // Use LLM to analyze and pick best URLs
     const client = getGeminiClient()
     const model = client.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: urlDiscoverySchema

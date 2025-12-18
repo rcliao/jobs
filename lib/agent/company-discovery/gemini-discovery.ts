@@ -117,7 +117,7 @@ export const generateDiscoveryQueries = traceable(async function generateDiscove
 ): Promise<string[]> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: searchQueriesSchema
@@ -186,7 +186,7 @@ export const extractCompaniesFromResults = traceable(async function extractCompa
 ): Promise<ExtractedCompany[]> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: extractedCompaniesSchema
@@ -246,7 +246,7 @@ export const generateFitAnalysis = traceable(async function generateFitAnalysis(
 ): Promise<FitAnalysisResult> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: fitAnalysisSchema
@@ -382,7 +382,7 @@ export const generateDiscoverySummary = traceable(async function generateDiscove
 ): Promise<string> {
   const client = getGeminiClient()
   // For plain text summary, we don't need structured output
-  const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = client.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const topCompanies = fitAnalyses
     .sort((a, b) => b.overallFitScore - a.overallFitScore)

@@ -173,7 +173,7 @@ export const validateUrlWithLLM = traceable(async function validateUrlWithLLM(
 ): Promise<UrlValidationResult> {
   const client = getGeminiClient()
   const model = client.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: urlValidationSchema
