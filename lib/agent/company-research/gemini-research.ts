@@ -971,30 +971,41 @@ export const discoverCompanyUrls = traceable(async function discoverCompanyUrls(
 ${domainInfo}
 ${websiteInfo}
 
-IMPORTANT RULES:
-1. For careersPageUrl: ONLY select URLs that are the company's OWN careers/jobs page (e.g., company.com/careers, careers.company.com)
-   - NEVER select job board URLs (LinkedIn, Indeed, Glassdoor jobs, Lever, Greenhouse, YCombinator, etc.)
-   - The URL must be owned/controlled by the company itself
-   - If no company-owned careers page is found, return null
+CRITICAL - NEVER RETURN THESE URL TYPES:
+- Google search URLs (google.com/search, google.com/url, etc.)
+- Any URL containing "?q=" or "&q=" query parameters
+- Bing, Yahoo, DuckDuckGo or any other search engine URLs
+- URL shorteners (bit.ly, tinyurl.com, t.co, goo.gl)
+- Cached or translated pages (webcache.googleusercontent.com, translate.google.com)
 
-2. For culturePageUrl: Select the company's about/culture/values/team page
+If you cannot find a DIRECT link to the actual page, return null instead of a search URL.
+
+RULES FOR EACH URL TYPE:
+1. careersPageUrl: The company's OWN careers/jobs page (e.g., company.com/careers)
+   - NEVER select job boards (LinkedIn, Indeed, Glassdoor jobs, Lever, Greenhouse, etc.)
+   - Must be owned by the company itself
+   - Return null if not found
+
+2. culturePageUrl: The company's about/culture/values page
    - Must be on the company's own domain
-   - If no company-owned culture page is found, return null
+   - Return null if not found
 
-3. For glassdoorUrl: Select the Glassdoor company overview/reviews page
-   - Must be a glassdoor.com URL
-   - Must be for THIS specific company, not a similarly named one
-
-4. For crunchbaseUrl: Select the Crunchbase company profile
-   - Must be a crunchbase.com/organization URL
+3. glassdoorUrl: Glassdoor company reviews page
+   - MUST start with "https://www.glassdoor.com/" or "https://glassdoor.com/"
    - Must be for THIS specific company
+   - Return null if not found
 
-5. Extract foundedYear if mentioned in any snippet
+4. crunchbaseUrl: Crunchbase company profile
+   - MUST start with "https://www.crunchbase.com/organization/" or "https://crunchbase.com/organization/"
+   - Must be for THIS specific company
+   - Return null if not found
+
+5. foundedYear: Extract if mentioned in any snippet
 
 Search Results:
 ${resultsText}
 
-Return the best matching URLs for each category. Return null for any category where no valid URL is found.`
+Return ONLY direct URLs to the actual pages. Return null for any category where no valid direct URL is found.`
 
     const llmResult = await model.generateContent(prompt)
     const text = llmResult.response.text()

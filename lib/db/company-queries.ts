@@ -22,6 +22,59 @@ import type {
 const db = getDb()
 
 // ============================================
+// URL Validation Guardrails
+// ============================================
+
+// Patterns that should NEVER be stored as company URLs
+const BLOCKED_URL_PATTERNS = [
+  'google.com/search',
+  'google.com/url',
+  'www.google.com/search',
+  'www.google.com/url',
+  'google.com/webhp',
+  'bing.com/search',
+  'yahoo.com/search',
+  'duckduckgo.com/',
+  'baidu.com/s',
+  'yandex.com/search',
+  'search.yahoo.com',
+  'webcache.googleusercontent.com',
+  'translate.google.com',
+  'bit.ly/',
+  'tinyurl.com/',
+  't.co/',
+  'goo.gl/',
+  // Block any URL with search query params that indicate a search results page
+  '?q=',
+  '&q=',
+  '?query=',
+  '&query=',
+  '?search=',
+  '&search='
+]
+
+/**
+ * Check if a URL is a search engine or redirect URL that should never be stored
+ */
+function isBlockedUrl(url: string | null | undefined): boolean {
+  if (!url) return false
+  const urlLower = url.toLowerCase()
+  return BLOCKED_URL_PATTERNS.some(pattern => urlLower.includes(pattern))
+}
+
+/**
+ * Sanitize URL - return null if it's a blocked URL, otherwise return the URL
+ */
+function sanitizeUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  if (isBlockedUrl(url)) {
+    console.warn(`BLOCKED invalid URL from being stored: ${url}`)
+    return null
+  }
+  return url
+}
+
+// ============================================
 // Row to Entity Converters
 // ============================================
 
@@ -313,6 +366,17 @@ export interface ExtractedCompanyUrls {
 export function updateCompanyUrls(id: string, urls: ExtractedCompanyUrls): Company | null {
   const now = Math.floor(Date.now() / 1000)
 
+  // GUARDRAIL: Sanitize all URLs before storing to prevent search engine URLs
+  const sanitizedCareersUrl = sanitizeUrl(urls.careersPageUrl)
+  const sanitizedCultureUrl = sanitizeUrl(urls.culturePageUrl)
+  const sanitizedGlassdoorUrl = sanitizeUrl(urls.glassdoorUrl)
+  const sanitizedCrunchbaseUrl = sanitizeUrl(urls.crunchbaseUrl)
+
+  // Additional validation: Glassdoor URL must contain glassdoor.com
+  const validGlassdoorUrl = sanitizedGlassdoorUrl?.includes('glassdoor.com') ? sanitizedGlassdoorUrl : null
+  // Additional validation: Crunchbase URL must contain crunchbase.com
+  const validCrunchbaseUrl = sanitizedCrunchbaseUrl?.includes('crunchbase.com') ? sanitizedCrunchbaseUrl : null
+
   // Use COALESCE to preserve existing values
   const stmt = db.prepare(`
     UPDATE companies SET
@@ -327,10 +391,10 @@ export function updateCompanyUrls(id: string, urls: ExtractedCompanyUrls): Compa
   `)
 
   stmt.run(
-    urls.careersPageUrl || null,
-    urls.culturePageUrl || null,
-    urls.glassdoorUrl || null,
-    urls.crunchbaseUrl || null,
+    sanitizedCareersUrl,
+    sanitizedCultureUrl,
+    validGlassdoorUrl,
+    validCrunchbaseUrl,
     urls.foundedYear || null,
     urls.metadata ? JSON.stringify(urls.metadata) : null,
     now,
