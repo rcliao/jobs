@@ -479,6 +479,8 @@ function calculateDefaultScore(
   return Math.round(weightedSum / totalWeight)
 }
 
+import { searchGoogle } from '@/lib/search/google'
+
 // Search engines and redirect URLs - should NEVER be stored as company URLs
 const SEARCH_ENGINE_PATTERNS = [
   'google.com/search',
@@ -836,3 +838,206 @@ export function mergeExtractedUrls(existing: ExtractedUrls | null, incoming: Ext
     }
   }
 }
+
+// Schema for URL discovery response
+const urlDiscoverySchema: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    careersPageUrl: {
+      type: SchemaType.STRING,
+      nullable: true,
+      description: 'The direct URL to the company careers or jobs page (NOT a job board, must be company-owned)'
+    },
+    culturePageUrl: {
+      type: SchemaType.STRING,
+      nullable: true,
+      description: 'The direct URL to the company about/culture/values page'
+    },
+    glassdoorUrl: {
+      type: SchemaType.STRING,
+      nullable: true,
+      description: 'The Glassdoor company reviews page URL'
+    },
+    crunchbaseUrl: {
+      type: SchemaType.STRING,
+      nullable: true,
+      description: 'The Crunchbase company profile URL'
+    },
+    foundedYear: {
+      type: SchemaType.INTEGER,
+      nullable: true,
+      description: 'The year the company was founded'
+    },
+    reasoning: {
+      type: SchemaType.STRING,
+      description: 'Brief explanation of URL selection'
+    }
+  },
+  required: ['reasoning']
+}
+
+/**
+ * Discover company URLs through targeted searches and LLM analysis
+ * This performs dedicated searches to find careers pages, culture pages, etc.
+ */
+export const discoverCompanyUrls = traceable(async function discoverCompanyUrls(
+  companyName: string,
+  companyDomain?: string | null,
+  websiteUrl?: string | null
+): Promise<ExtractedUrls> {
+  const result: ExtractedUrls = {
+    careersPageUrl: null,
+    culturePageUrl: null,
+    glassdoorUrl: null,
+    crunchbaseUrl: null,
+    foundedYear: null,
+    alternatives: {
+      careers: [],
+      culture: [],
+      reviews: []
+    },
+    confidence: {
+      careers: 0,
+      culture: 0,
+      glassdoor: 0,
+      crunchbase: 0
+    }
+  }
+
+  // Build targeted search queries
+  const queries: string[] = []
+
+  // Careers page queries
+  if (companyDomain) {
+    queries.push(`site:${companyDomain} careers OR jobs`)
+  }
+  queries.push(`"${companyName}" careers page official`)
+
+  // Glassdoor and Crunchbase queries
+  queries.push(`"${companyName}" site:glassdoor.com reviews`)
+  queries.push(`"${companyName}" site:crunchbase.com`)
+
+  // Culture/about page queries
+  if (companyDomain) {
+    queries.push(`site:${companyDomain} about OR culture OR values OR team`)
+  }
+
+  try {
+    // Execute searches in parallel (no date restriction for these)
+    const searchPromises = queries.map(q =>
+      searchGoogle(q, '').catch(() => []) // Empty string = no date restriction
+    )
+    const searchResults = await Promise.all(searchPromises)
+    const allResults = searchResults.flat()
+
+    if (allResults.length === 0) {
+      console.log(`No search results found for ${companyName} URL discovery`)
+      return result
+    }
+
+    // Filter out search engine URLs
+    const validResults = allResults.filter(r => !isSearchEngineUrl(r.link))
+
+    if (validResults.length === 0) {
+      console.log(`All results filtered out for ${companyName} URL discovery`)
+      return result
+    }
+
+    // Format results for LLM analysis
+    const resultsText = validResults.slice(0, 20).map((r, i) =>
+      `[${i + 1}] URL: ${r.link}\n    Title: ${r.title}\n    Snippet: ${r.snippet}`
+    ).join('\n\n')
+
+    // Use LLM to analyze and pick best URLs
+    const client = getGeminiClient()
+    const model = client.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: urlDiscoverySchema
+      }
+    })
+
+    const domainInfo = companyDomain ? `Company domain: ${companyDomain}` : ''
+    const websiteInfo = websiteUrl ? `Company website: ${websiteUrl}` : ''
+
+    const prompt = `Analyze these search results to find official URLs for "${companyName}".
+${domainInfo}
+${websiteInfo}
+
+IMPORTANT RULES:
+1. For careersPageUrl: ONLY select URLs that are the company's OWN careers/jobs page (e.g., company.com/careers, careers.company.com)
+   - NEVER select job board URLs (LinkedIn, Indeed, Glassdoor jobs, Lever, Greenhouse, YCombinator, etc.)
+   - The URL must be owned/controlled by the company itself
+   - If no company-owned careers page is found, return null
+
+2. For culturePageUrl: Select the company's about/culture/values/team page
+   - Must be on the company's own domain
+   - If no company-owned culture page is found, return null
+
+3. For glassdoorUrl: Select the Glassdoor company overview/reviews page
+   - Must be a glassdoor.com URL
+   - Must be for THIS specific company, not a similarly named one
+
+4. For crunchbaseUrl: Select the Crunchbase company profile
+   - Must be a crunchbase.com/organization URL
+   - Must be for THIS specific company
+
+5. Extract foundedYear if mentioned in any snippet
+
+Search Results:
+${resultsText}
+
+Return the best matching URLs for each category. Return null for any category where no valid URL is found.`
+
+    const llmResult = await model.generateContent(prompt)
+    const text = llmResult.response.text()
+    const parsed = JSON.parse(text)
+
+    // Validate and assign URLs (with additional safety checks)
+    if (parsed.careersPageUrl && !isSearchEngineUrl(parsed.careersPageUrl)) {
+      // Additional check: ensure it's not a job board
+      const isJobBoard = JOB_BOARD_DOMAINS.some(domain =>
+        parsed.careersPageUrl.toLowerCase().includes(domain)
+      )
+      if (!isJobBoard) {
+        result.careersPageUrl = parsed.careersPageUrl
+        result.confidence.careers = 0.85
+      }
+    }
+
+    if (parsed.culturePageUrl && !isSearchEngineUrl(parsed.culturePageUrl)) {
+      const isGeneric = GENERIC_SITES.some(site =>
+        parsed.culturePageUrl.toLowerCase().includes(site)
+      )
+      if (!isGeneric) {
+        result.culturePageUrl = parsed.culturePageUrl
+        result.confidence.culture = 0.85
+      }
+    }
+
+    if (parsed.glassdoorUrl && parsed.glassdoorUrl.includes('glassdoor.com')) {
+      result.glassdoorUrl = parsed.glassdoorUrl
+      result.confidence.glassdoor = 0.9
+    }
+
+    if (parsed.crunchbaseUrl && parsed.crunchbaseUrl.includes('crunchbase.com')) {
+      result.crunchbaseUrl = parsed.crunchbaseUrl
+      result.confidence.crunchbase = 0.9
+    }
+
+    if (parsed.foundedYear && typeof parsed.foundedYear === 'number') {
+      const year = parsed.foundedYear
+      if (year >= 1800 && year <= new Date().getFullYear()) {
+        result.foundedYear = year
+      }
+    }
+
+    console.log(`URL discovery for ${companyName}: careers=${result.careersPageUrl ? 'found' : 'null'}, culture=${result.culturePageUrl ? 'found' : 'null'}, glassdoor=${result.glassdoorUrl ? 'found' : 'null'}`)
+
+    return result
+  } catch (error) {
+    console.error(`URL discovery error for ${companyName}:`, error)
+    return result
+  }
+}, { name: 'discoverCompanyUrls', run_type: 'llm' })
