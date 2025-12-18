@@ -913,14 +913,20 @@ export const discoverCompanyUrls = traceable(async function discoverCompanyUrls(
   }
   queries.push(`"${companyName}" careers page official`)
 
-  // Glassdoor and Crunchbase queries
+  // Glassdoor queries - multiple variations for better matching
   queries.push(`"${companyName}" site:glassdoor.com reviews`)
-  queries.push(`"${companyName}" site:crunchbase.com`)
+  queries.push(`${companyName} company reviews site:glassdoor.com`)
 
-  // Culture/about page queries
+  // Crunchbase queries - multiple variations for better matching
+  queries.push(`"${companyName}" site:crunchbase.com`)
+  queries.push(`${companyName} funding site:crunchbase.com/organization`)
+
+  // Culture/about page queries - with fallback for when domain is unknown
   if (companyDomain) {
     queries.push(`site:${companyDomain} about OR culture OR values OR team`)
   }
+  queries.push(`"${companyName}" about us company culture`)
+  queries.push(`"${companyName}" official website about`)
 
   try {
     // Execute searches in parallel (no date restriction for these)

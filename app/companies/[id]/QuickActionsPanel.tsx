@@ -6,74 +6,70 @@ interface QuickActionsPanelProps {
   company: Company
 }
 
-interface ActionButton {
+interface ActionLink {
   label: string
   icon: string
   url: string | null
   fallbackSearchQuery?: string
-  color: string
 }
 
 export function QuickActionsPanel({ company }: QuickActionsPanelProps) {
-  const actions: ActionButton[] = [
+  const actions: ActionLink[] = [
     {
       label: 'Careers',
       icon: '💼',
       url: company.careersPageUrl,
-      fallbackSearchQuery: `${company.name} careers jobs`,
-      color: 'bg-blue-600 hover:bg-blue-700'
+      fallbackSearchQuery: `${company.name} careers jobs`
     },
     {
       label: 'Culture',
       icon: '🏢',
       url: company.culturePageUrl,
-      fallbackSearchQuery: `${company.name} company culture values`,
-      color: 'bg-purple-600 hover:bg-purple-700'
+      fallbackSearchQuery: `${company.name} company culture values`
     },
     {
       label: 'Reviews',
       icon: '⭐',
       url: company.glassdoorUrl,
-      fallbackSearchQuery: `${company.name} glassdoor reviews`,
-      color: 'bg-green-600 hover:bg-green-700'
+      fallbackSearchQuery: `${company.name} glassdoor reviews`
     },
     {
       label: 'Funding',
       icon: '📊',
       url: company.crunchbaseUrl,
-      fallbackSearchQuery: `${company.name} crunchbase funding`,
-      color: 'bg-orange-600 hover:bg-orange-700'
+      fallbackSearchQuery: `${company.name} crunchbase funding`
     }
   ]
 
-  const handleClick = (action: ActionButton) => {
+  const getUrl = (action: ActionLink): string => {
     if (action.url) {
-      window.open(action.url, '_blank', 'noopener,noreferrer')
-    } else if (action.fallbackSearchQuery) {
-      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(action.fallbackSearchQuery)}`
-      window.open(searchUrl, '_blank', 'noopener,noreferrer')
+      return action.url
     }
+    if (action.fallbackSearchQuery) {
+      return `https://www.google.com/search?q=${encodeURIComponent(action.fallbackSearchQuery)}`
+    }
+    return '#'
   }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Links</h3>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
         {actions.map((action) => (
-          <button
+          <a
             key={action.label}
-            onClick={() => handleClick(action)}
-            className={`${action.color} text-white py-2 px-3 rounded-md font-medium text-sm flex items-center justify-center gap-1.5 transition-colors ${
-              !action.url ? 'opacity-80' : ''
-            }`}
+            href={getUrl(action)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 hover:underline text-sm flex items-center gap-1.5 transition-colors"
             title={action.url ? action.label : `Search for ${action.label}`}
           >
             <span>{action.icon}</span>
             <span>{action.label}</span>
             {!action.url && (
-              <span className="text-xs opacity-75">🔍</span>
+              <span className="text-xs text-gray-400">🔍</span>
             )}
-          </button>
+          </a>
         ))}
       </div>
       {company.foundedYear && (
