@@ -149,7 +149,7 @@ export default function DiscoveryDetailPage({
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <span className="text-xl sm:text-2xl font-bold text-gray-400">#{index + 1}</span>
                       <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                        <Link href={`/companies/${result.company.id}`} className="hover:text-blue-600">
+                        <Link href={`/companies/${result.company.id}?from=/discovery/${id}`} className="hover:text-blue-600">
                           {result.company.name}
                         </Link>
                       </h2>
@@ -291,7 +291,7 @@ export default function DiscoveryDetailPage({
                     ))}
                     {result.contacts.length > 3 && (
                       <Link
-                        href={`/companies/${result.company.id}`}
+                        href={`/companies/${result.company.id}?from=/discovery/${id}`}
                         className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm"
                       >
                         +{result.contacts.length - 3} more contacts →

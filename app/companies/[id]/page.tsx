@@ -101,10 +101,14 @@ export default async function CompanyDetailPage({
   searchParams
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ researching?: string }>
+  searchParams: Promise<{ researching?: string; from?: string }>
 }) {
   const { id } = await params
   const query = await searchParams
+
+  // Determine back link based on where user came from
+  const backUrl = query.from || '/companies'
+  const backLabel = query.from?.startsWith('/discovery') ? '← Back to Discovery' : '← Back to Companies'
 
   const company = getCompany(id)
   if (!company) {
@@ -150,8 +154,8 @@ export default async function CompanyDetailPage({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
           <div>
-            <Link href="/companies" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
-              ← Back to Companies
+            <Link href={backUrl} className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+              {backLabel}
             </Link>
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{company.name}</h1>
